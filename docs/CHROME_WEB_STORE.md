@@ -50,16 +50,22 @@ Side panel + right-click menu give you:
 
 • Local-only stats — see your own usage counters. Zero phone-home.
 
-PRO TIER ($9 one-time OR $4/mo via Polar.sh)
+PRO TIER ($4/mo subscription, early access — via Polar.sh)
+
+The Pro features below ship in v0.3. Subscribing at v0.0.1 / v0.1 /
+v0.2 locks the early-bird price and funds the build. The Pro UI is
+live in the side panel now; the rewriter itself activates in v0.3
+without requiring re-subscription.
 
 • AI closer rewriter — paste a draft, pick an intent (tease product,
   invite reply, thank person, ask question), get a closing line
-  rewritten through HAL /api/infer. Anti-fluff floor runs BEFORE the
-  LLM call, so banned phrases never reach the model. Refusal is a
-  feature.
+  rewritten through HAL /api/infer (Harness Abstraction Layer,
+  CodeTonight's proprietary inference router). Anti-fluff floor runs
+  BEFORE the LLM call, so banned phrases never reach the model.
+  Refusal is a feature.
 
 • R0 grounding semantic check — beyond the regex floor, an LLM
-  reviews the draft for unfounded claims at the v0.3 update.
+  reviews the draft for unfounded claims.
 
 • Reason-out-loud toggle — see the model's chain-of-thought before
   the closer.

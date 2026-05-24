@@ -96,8 +96,9 @@ export async function rewriteCloser(
     return {
       closer: null,
       reasoning:
-        "Pro tier requires a licence key. Buy at grip-post.com/pro " +
-        "($9 one-time or $4/mo).",
+        "Pro tier requires a licence key. Buy at " +
+        "polar.sh/architext1/grip-post-pro ($4/mo, early access — " +
+        "rewriter ships v0.3).",
     };
   }
   // v0.1 + v0.2 stub — v0.3 wires the real HAL call.

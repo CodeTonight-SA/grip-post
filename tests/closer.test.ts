@@ -44,7 +44,11 @@ describe("rewriteCloser — licence gate (after anti-fluff passes)", () => {
     });
     expect(res.closer).toBeNull();
     expect(res.reasoning).toContain("Pro tier");
-    expect(res.reasoning).toContain("$9");
+    // Pricing-string contract: must name the subscription tier ($4/mo).
+    // Pricing pivoted from "$9 one-time OR $4/mo" → "$4/mo only" on
+    // 2026-05-24 after Polar's UI confirmed one-pricing-mode-per-product.
+    expect(res.reasoning).toContain("$4");
+    expect(res.reasoning).toContain("early access");
   });
 });
 

@@ -10,7 +10,7 @@ A Chrome extension that helps you write better LinkedIn posts: Unicode formattin
 
 - LinkedIn's native editor strips most Unicode formatting. grip-post applies it via a side panel so it survives copy-paste.
 - Most AI writing tools produce the same hollow phrases. grip-post flags them before you publish.
-- You get seven Unicode transforms free. The AI closer rewriter and R0 grounding check are Pro ($9 one-time or $4/mo).
+- You get seven Unicode transforms free. The AI closer rewriter is Pro ($4/mo, early access — ships in v0.3).
 
 ## Install
 
@@ -35,9 +35,11 @@ npm run package
 
 Runs `build` → `verify-build` (capability-lock assertion on the artefact's permissions + host_permissions + content-script matches) → zips `dist/`. Fails loud if the build widened the permission surface.
 
-## Pro tier
+## Pro tier (early access)
 
-$9 one-time OR $4/mo unlocks the AI closer rewriter + R0 grounding check + reason-out-loud.
+$4/mo subscription unlocks the AI closer rewriter + R0 grounding semantic check + reason-out-loud. The rewriter itself ships in v0.3 — routes through HAL (Harness Abstraction Layer, CodeTonight's proprietary inference router) with an anti-fluff floor BEFORE the LLM call so banned phrases never reach the model. Subscribing now locks the early-bird price and funds the build.
+
+Buy: [polar.sh/architext1/grip-post-pro](https://polar.sh/architext1/grip-post-pro)
 
 ## Contributing
 

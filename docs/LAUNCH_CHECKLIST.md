@@ -11,13 +11,22 @@ V>>'s manual steps for the W11 launch. Each item is autonomous-unsafe
       pseudonym.
 - [ ] **Polar.sh org + product**.
   - Org: `architext1` (already exists per `project_donna_v_alias_architext1`).
-  - Create product: `grip-post-pro`, $9 one-time OR $4/mo subscription
-    (Polar handles the dual-option page).
-  - Set webhook → V>>'s server endpoint that issues
-    `grip-post-pro-XXXXXXXX...` licence keys via AgentMail
-    (`grip-trial-out@agentmail.to`).
-  - The licence key issuance code is NOT in this repo (it lives
-    server-side; see `lib/agentmail.py` shim).
+  - Create product: `grip-post-pro`, **$4/mo recurring subscription**
+    (early access — the rewriter ships v0.3; description makes that
+    explicit so buyers know they're funding the build).
+  - **Polar data-model gotcha (corrected 2026-05-24)**: ONE pricing
+    mode per product — recurring XOR one-time, not both. The original
+    "dual-option per product" claim in earlier docs was false. If a
+    one-time $9 tier is also wanted later, it needs a SECOND product
+    + a second checkout URL in `src/lib/polar.ts`.
+  - Webhook → **DEFER to v0.3**. The licence-issuance + key-validator
+    server-side code does not exist yet. At v0.0.1/v0.1/v0.2, V>>
+    manually emails `grip-post-pro-XXXX...` keys to early-access
+    subscribers via `grip-trial-out@agentmail.to` (`lib/agentmail.py`
+    shim is the transport).
+  - Skip Automated Benefits, Metadata, and Custom Checkout Fields for
+    v0.0.1. Benefits (specifically Polar's License Keys benefit) wire
+    up at v0.3 alongside the webhook.
 - [ ] **Product Hunt maker account** (free at <https://www.producthunt.com/>).
 - [ ] **`grip-post.com` domain** (optional; can launch without).
 

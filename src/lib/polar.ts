@@ -14,8 +14,18 @@
 // extension's "Save licence" field. Zero secrets in the extension.
 //
 // V>>'s Polar org slug: `architext1` (per project_donna_v_alias_architext1).
-// SKU slug: `pro` (single Pro tier, $9 one-time OR $4/mo — Polar handles
-// the recurring vs one-time distinction per-product page).
+// SKU slug: `grip-post-pro` — $4/mo recurring subscription (early access).
+//
+// **v0.0.1 honest scope**: the Polar checkout page is live and accepts
+// subscriptions, but the AI closer rewriter itself ships in v0.3. Buyers
+// at v0.0.1/v0.1/v0.2 are early-access subscribers funding the build;
+// the Polar product description makes this explicit.
+//
+// **Pricing data model (corrected 2026-05-24)**: Polar enforces ONE
+// pricing mode per product — one-time XOR recurring, not both. The
+// original W9 docs claimed dual-option per product; that was false (V>>
+// caught it on the Polar UI). v0.0.1 ships subscription only ($4/mo); a
+// future one-time tier would need a second product + second checkout URL.
 
 /** Polar.sh product page for the grip-post Pro tier. */
 export const POLAR_PRO_CHECKOUT_URL =

@@ -19,7 +19,7 @@ A LinkedIn tool that refuses to write fluff.
 ```
 Format LinkedIn posts with real Unicode (bold, italic, brackets, arrows). Then a gate refuses 25 banned phrases — "revolutionary", "thrilled to announce", "thought leader" — and flags unsourced claims like "studies show" without a citation. Refusal is a feature.
 
-Free: 10 transforms + anti-fluff check + R0 grounding regex + local draft history. Pro ($9 one-time or $4/mo): AI closer rewriter that routes through HAL with an anti-fluff floor BEFORE the LLM call (so banned phrases never reach the model). Zero telemetry. host_permissions allowlist is linkedin.com only — any other network call is blocked by Chrome's CSP.
+Free: 10 transforms + anti-fluff check + R0 grounding regex + local draft history. Pro ($4/mo, early access): the AI closer rewriter ships in v0.3 — routes through HAL (Harness Abstraction Layer, CodeTonight's proprietary inference router) with an anti-fluff floor BEFORE the LLM call so banned phrases never reach the model. Subscribing now locks the early-bird price and funds the build. Zero telemetry. host_permissions allowlist is linkedin.com only — any other network call is blocked by Chrome's CSP.
 
 Open source, MIT. Banned-phrase list lives in source — review it, propose additions via PR. Capability lock verifier in CI catches any permission widening.
 ```
@@ -41,7 +41,7 @@ I built grip-post because every AI writing tool I tried produced the same hollow
 
 The gate is 25 hardcoded phrases — "revolutionary", "thought leader", "thrilled to announce" — and it's deliberately small. You can read the whole list in 30 seconds: github.com/CodeTonight-SA/grip-post/blob/main/src/lib/anti-fluff.ts
 
-The Pro tier ($9 one-time, $4/mo) wires the closer rewriter to HAL /api/infer with the anti-fluff regex floor running BEFORE the LLM call. The model never sees a banned phrase, so it cannot output one.
+The Pro tier ($4/mo, early access — rewriter ships v0.3) wires the closer rewriter to HAL /api/infer (Harness Abstraction Layer, CodeTonight's proprietary inference router) with the anti-fluff regex floor running BEFORE the LLM call. The model never sees a banned phrase, so it cannot output one.
 
 Zero telemetry. host_permissions is linkedin.com only. Privacy policy is one Markdown file: github.com/CodeTonight-SA/grip-post/blob/main/docs/PRIVACY.md
 
