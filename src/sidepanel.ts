@@ -20,6 +20,13 @@ import {
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
 
+// Hoist storage to module scope so save/view/clear share the same backend.
+// In a real Chrome extension this returns `chrome.storage.local` (shared
+// state by definition); in dev/test environments without chrome it returns
+// an in-memory Map. Without hoisting, each call would build a FRESH Map
+// and drafts would silently never round-trip — caught by E2E save→view test.
+const storage = defaultStorage();
+
 const VALID_KEYS: ReadonlySet<TransformKey> = new Set<TransformKey>([
   "bold",
   "italic",
@@ -56,7 +63,6 @@ function formatDrafts(drafts: readonly DraftEntry[]): string {
 }
 
 async function handleAction(action: string): Promise<void> {
-  const storage = defaultStorage();
   const text = input?.value ?? "";
   switch (action) {
     case "save-draft": {

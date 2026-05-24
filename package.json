@@ -11,11 +11,14 @@
     "verify-build": "node bin/verify-build.mjs",
     "package": "npm run build && npm run verify-build && node bin/package.mjs",
     "test": "vitest run",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install --with-deps chromium",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^2.0.0-beta.23",
+    "@playwright/test": "^1.60.0",
     "@types/chrome": "^0.0.270",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",

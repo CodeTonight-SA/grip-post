@@ -25,6 +25,11 @@ coverage/
 # Web Store package
 *.zip
 
+# Playwright
+playwright-report/
+test-results/
+.playwright/
+
 # Editor
 .idea/
 .vscode/
