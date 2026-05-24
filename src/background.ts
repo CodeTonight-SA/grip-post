@@ -19,6 +19,8 @@ const MENU_ITEMS: readonly MenuItem[] = [
   { id: "handles", title: "grip-post: A.com · B.com (Handles)" },
   { id: "diamond", title: "grip-post: Diamond ◆" },
   { id: "check", title: "grip-post: Check for fluff" },
+  { id: "strip-tells", title: "grip-post: Strip AI tells" },
+  { id: "ground-check", title: "grip-post: R0 grounding check" },
 ];
 
 chrome.runtime.onInstalled.addListener(() => {

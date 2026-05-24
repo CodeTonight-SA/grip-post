@@ -62,6 +62,52 @@ describe("rewriteCloser — stub honour (v0.1 / v0.2 surface)", () => {
   });
 });
 
+describe("rewriteCloser — reason-out-loud toggle (Pro, v0.1 surface)", () => {
+  it("verbose reasoning differs from default when flag is on", async () => {
+    const off = await rewriteCloser({
+      draft: "Plain.",
+      intent: "tease-product",
+      licenceKey: "valid-key",
+    });
+    const on = await rewriteCloser({
+      draft: "Plain.",
+      intent: "tease-product",
+      licenceKey: "valid-key",
+      reasonOutLoud: true,
+    });
+    expect(on.reasoning).not.toBe(off.reasoning);
+    // Verbose reasoning is materially longer.
+    expect(on.reasoning.length).toBeGreaterThan(off.reasoning.length);
+  });
+  it("verbose reasoning names the v0.3 routing target", async () => {
+    const r = await rewriteCloser({
+      draft: "Plain.",
+      intent: "ask-question",
+      licenceKey: "valid-key",
+      reasonOutLoud: true,
+    });
+    expect(r.reasoning).toContain("/api/infer");
+  });
+  it("verbose reasoning names the intent", async () => {
+    const r = await rewriteCloser({
+      draft: "Plain.",
+      intent: "thank-person",
+      licenceKey: "valid-key",
+      reasonOutLoud: true,
+    });
+    expect(r.reasoning).toContain("thank-person");
+  });
+  it("verbose reasoning still returns closer=null (stub semantics preserved)", async () => {
+    const r = await rewriteCloser({
+      draft: "Plain.",
+      intent: "tease-product",
+      licenceKey: "valid-key",
+      reasonOutLoud: true,
+    });
+    expect(r.closer).toBeNull();
+  });
+});
+
 describe("rewriteCloser — adversarial (refusal is a FEATURE, not a failure)", () => {
   it("for every intent, the stub refuses without throwing", async () => {
     const intents: ClosingIntent[] = [

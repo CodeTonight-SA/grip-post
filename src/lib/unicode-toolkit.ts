@@ -80,11 +80,15 @@ export function diamondTerminate(s: string): string {
 }
 
 import { reportFluff, formatReport } from "./anti-fluff";
+import { stripTells, formatStripReport } from "./strip-tells";
+import { reportGrounding, formatGroundingReport } from "./r0-grounding";
 
 /**
- * Stable key set for v0.1 features. Seven Unicode transforms +
- * the anti-fluff `check` (W4) — all return string so the side
- * panel and content script share a single dispatch surface.
+ * Stable key set for v0.1 / v0.2 features. Ten transforms — Unicode
+ * (W3), anti-fluff `check` (W4), and the W6 trio: `strip-tells` (Free,
+ * active counterpart to `check`), `ground-check` (Pro regex floor for
+ * R0 grounding). All return string so the side panel and content
+ * script share a single dispatch surface.
  */
 export type TransformKey =
   | "bold"
@@ -94,7 +98,9 @@ export type TransformKey =
   | "arrow"
   | "handles"
   | "diamond"
-  | "check";
+  | "check"
+  | "strip-tells"
+  | "ground-check";
 
 /**
  * Apply a transform by key. Single dispatch table so the side panel and the
@@ -126,5 +132,9 @@ export function dispatch(key: TransformKey, raw: string): string {
       return diamondTerminate(raw);
     case "check":
       return formatReport(reportFluff(raw));
+    case "strip-tells":
+      return formatStripReport(stripTells(raw));
+    case "ground-check":
+      return formatGroundingReport(reportGrounding(raw));
   }
 }

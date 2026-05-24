@@ -41,6 +41,13 @@ export interface CloserRequest {
   readonly intent: ClosingIntent;
   /** Optional Pro licence key for server-side auth. Required for non-stub impl. */
   readonly licenceKey?: string;
+  /**
+   * Pro tier toggle: when true, the rewriter exposes its chain-of-thought
+   * before the closer. v0.3 will stream HAL's reasoning tokens; the v0.1
+   * stub merely produces a richer refusal explanation so the contract
+   * surface is testable end-to-end.
+   */
+  readonly reasonOutLoud?: boolean;
 }
 
 export interface CloserResponse {
@@ -93,7 +100,23 @@ export async function rewriteCloser(
         "($9 one-time or $4/mo).",
     };
   }
-  // v0.1 + v0.2 stub — W6 wires the real HAL call.
+  // v0.1 + v0.2 stub — v0.3 wires the real HAL call.
+  // Reason-out-loud toggle expands the reasoning text without changing the
+  // verdict (still null closer). The differential is testable: with the
+  // flag the reasoning is materially longer + names the intent + names
+  // the v0.3 routing target.
+  if (req.reasonOutLoud) {
+    return {
+      closer: null,
+      reasoning:
+        `Pro tier scaffolded (verbose). Intent: ${req.intent}. ` +
+        `v0.3 will route this through HAL /api/infer with an intent-shaped ` +
+        `system prompt, capability-locked to "closer rewrite" — no general ` +
+        `prompt forwarding. Refusal is a feature: until the real call ships, ` +
+        `the stub stays fail-CLOSED so silent "[TODO]" closers cannot leak ` +
+        `into LinkedIn drafts.`,
+    };
+  }
   return {
     closer: null,
     reasoning:

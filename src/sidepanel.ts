@@ -1,8 +1,21 @@
-// grip-post side panel — delegates to the shared dispatch in unicode-toolkit.
-// Click handler is event-delegated on the document, so adding a new button in
-// the HTML with `data-transform="..."` is the only change needed for a new key.
+// grip-post side panel — delegates to the shared dispatch in unicode-toolkit
+// for transforms, and to draft-history for the local persistence buttons.
+// Two attribute namespaces:
+//   - data-transform="<TransformKey>"   → input → dispatch(key, text) → output
+//   - data-action="save-draft|view-history|clear-history"
+//                                       → side-effect against chrome.storage.local
+//
+// Adding a new transform = a new HTML button with `data-transform`, then add
+// the key to VALID_KEYS below. Adding a new action = case in handleAction.
 
 import { dispatch, type TransformKey } from "./lib/unicode-toolkit";
+import {
+  saveDraft,
+  getDrafts,
+  clearDrafts,
+  defaultStorage,
+  type DraftEntry,
+} from "./lib/draft-history";
 
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
@@ -16,13 +29,72 @@ const VALID_KEYS: ReadonlySet<TransformKey> = new Set<TransformKey>([
   "handles",
   "diamond",
   "check",
+  "strip-tells",
+  "ground-check",
 ]);
+
+const VALID_ACTIONS = new Set([
+  "save-draft",
+  "view-history",
+  "clear-history",
+]);
+
+function setOutput(text: string): void {
+  if (output) output.textContent = text;
+}
+
+/** Format a draft list for the output panel — newest first, ISO timestamps. */
+function formatDrafts(drafts: readonly DraftEntry[]): string {
+  if (drafts.length === 0) return "No drafts saved yet.";
+  const lines: string[] = [`${drafts.length} draft(s):`, ""];
+  for (const d of drafts) {
+    const ts = new Date(d.savedAt).toISOString();
+    const preview = d.text.length > 60 ? d.text.slice(0, 57) + "..." : d.text;
+    lines.push(`[${ts}] ${preview}`);
+  }
+  return lines.join("\n");
+}
+
+async function handleAction(action: string): Promise<void> {
+  const storage = defaultStorage();
+  const text = input?.value ?? "";
+  switch (action) {
+    case "save-draft": {
+      try {
+        const entry = await saveDraft(text, storage);
+        setOutput(
+          `Saved draft ${entry.id} at ${new Date(entry.savedAt).toISOString()}.`,
+        );
+      } catch (err) {
+        setOutput(`Save failed: ${(err as Error).message}`);
+      }
+      return;
+    }
+    case "view-history": {
+      const drafts = await getDrafts(storage);
+      setOutput(formatDrafts(drafts));
+      return;
+    }
+    case "clear-history": {
+      await clearDrafts(storage);
+      setOutput("Cleared all drafts.");
+      return;
+    }
+  }
+}
 
 document.addEventListener("click", (event) => {
   const target = event.target as HTMLElement | null;
-  const raw = target?.dataset?.transform;
-  if (!raw || !VALID_KEYS.has(raw as TransformKey)) return;
-  const text = input?.value ?? "";
-  const result = dispatch(raw as TransformKey, text);
-  if (output) output.textContent = result;
+  if (!target) return;
+  const transform = target.dataset?.transform;
+  const action = target.dataset?.action;
+  if (transform && VALID_KEYS.has(transform as TransformKey)) {
+    const text = input?.value ?? "";
+    setOutput(dispatch(transform as TransformKey, text));
+    return;
+  }
+  if (action && VALID_ACTIONS.has(action)) {
+    void handleAction(action);
+    return;
+  }
 });
