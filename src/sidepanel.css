@@ -1,0 +1,53 @@
+/* grip-post side panel styles */
+/* W3 will add formatting controls */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: monospace;
+  font-size: 14px;
+  padding: 16px;
+  color: #111;
+  background: #fff;
+}
+
+h1 {
+  font-size: 16px;
+  font-weight: bold;
+  margin-bottom: 12px;
+}
+
+p {
+  margin-bottom: 12px;
+  color: #444;
+}
+
+button {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  font-family: monospace;
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid #333;
+  background: #fff;
+  color: #111;
+}
+
+button:hover {
+  background: #f0f0f0;
+}
+
+#output {
+  margin-top: 16px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  min-height: 40px;
+  white-space: pre-wrap;
+  font-family: monospace;
+}

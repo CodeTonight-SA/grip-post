@@ -1,0 +1,14 @@
+/* grip-post global reset */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: monospace;
+  font-size: 14px;
+  color: #111;
+  background: #fff;
+}
