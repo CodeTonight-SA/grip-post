@@ -16,7 +16,7 @@ A Chrome extension that helps you write better LinkedIn posts: Unicode formattin
 
 **Chrome Web Store**: coming W11 (June 2026).
 
-**Dev build**:
+**Dev build** (load unpacked):
 
 ```
 git clone https://github.com/CodeTonight-SA/grip-post.git
@@ -26,6 +26,14 @@ npm run build
 ```
 
 Then open `chrome://extensions`, enable Developer Mode, click "Load unpacked", and select the `dist/` folder.
+
+**Package** (produces `grip-post-<version>.zip` for Chrome Web Store upload):
+
+```
+npm run package
+```
+
+Runs `build` → `verify-build` (capability-lock assertion on the artefact's permissions + host_permissions + content-script matches) → zips `dist/`. Fails loud if the build widened the permission surface.
 
 ## Pro tier
 

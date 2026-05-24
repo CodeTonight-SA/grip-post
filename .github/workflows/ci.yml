@@ -28,3 +28,5 @@ jobs:
         run: npm test --if-present
       - name: Build
         run: npm run build --if-present
+      - name: Verify build artefacts (capability lock)
+        run: npm run verify-build --if-present

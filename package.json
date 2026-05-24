@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "verify-build": "node bin/verify-build.mjs",
+    "package": "npm run build && npm run verify-build && node bin/package.mjs",
     "test": "vitest run",
     "lint": "eslint src --ext .ts,.tsx",
     "typecheck": "tsc --noEmit"
