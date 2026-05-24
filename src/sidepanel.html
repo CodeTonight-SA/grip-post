@@ -8,10 +8,21 @@
   </head>
   <body>
     <h1>grip-post</h1>
-    <p>Select text on LinkedIn, then use the buttons below.</p>
-    <button id="btn-format" type="button">Format</button>
-    <button id="btn-check" type="button">Check for fluff</button>
-    <div id="output" aria-live="polite"></div>
+    <p>
+      Paste a draft or selection. Pick a transform.
+      The result lands in the output box below — copy and paste into LinkedIn.
+    </p>
+    <textarea id="input" rows="6" placeholder="Your text here..."></textarea>
+    <div class="buttons">
+      <button type="button" data-transform="bold">𝗕𝗼𝗹𝗱</button>
+      <button type="button" data-transform="italic">𝘐𝘵𝘢𝘭𝘪𝘤</button>
+      <button type="button" data-transform="brackets">⌜ Brackets ⌟</button>
+      <button type="button" data-transform="hr">━━━ Horizontal (width)</button>
+      <button type="button" data-transform="arrow">▸  ─→  Arrow bullet</button>
+      <button type="button" data-transform="handles">A.com · B.com (Handles)</button>
+      <button type="button" data-transform="diamond">Diamond ◆</button>
+    </div>
+    <output id="output" aria-live="polite"></output>
     <script type="module" src="sidepanel.ts"></script>
   </body>
 </html>
