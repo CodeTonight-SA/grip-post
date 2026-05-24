@@ -25,6 +25,13 @@ import {
   hasProLicence,
 } from "./lib/licence";
 import { buildCheckoutUrl } from "./lib/polar";
+import {
+  bump,
+  getStats,
+  resetStats,
+  formatStats,
+  type StatEvent,
+} from "./lib/telemetry";
 
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
@@ -60,6 +67,8 @@ const VALID_ACTIONS = new Set([
   "save-licence",
   "check-licence",
   "clear-licence",
+  "show-stats",
+  "reset-stats",
 ]);
 
 function setOutput(text: string): void {
@@ -147,6 +156,16 @@ async function handleAction(action: string): Promise<void> {
       setOutput("Licence removed. Pro features locked.");
       return;
     }
+    case "show-stats": {
+      const s = await getStats(storage);
+      setOutput(formatStats(s));
+      return;
+    }
+    case "reset-stats": {
+      await resetStats(storage);
+      setOutput("Stats reset. Counters back to zero.");
+      return;
+    }
   }
 }
 
@@ -158,10 +177,13 @@ document.addEventListener("click", (event) => {
   if (transform && VALID_KEYS.has(transform as TransformKey)) {
     const text = input?.value ?? "";
     setOutput(dispatch(transform as TransformKey, text));
+    // Local-only counter bump. Pure storage, zero network. See lib/telemetry.ts.
+    void bump(`transform.${transform}` as StatEvent, 1, storage);
     return;
   }
   if (action && VALID_ACTIONS.has(action)) {
     void handleAction(action);
+    void bump(`action.${action}` as StatEvent, 1, storage);
     return;
   }
 });

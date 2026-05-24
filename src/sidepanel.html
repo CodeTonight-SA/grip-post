@@ -53,6 +53,16 @@
       <button type="button" data-action="check-licence">Check status</button>
       <button type="button" data-action="clear-licence">Remove licence</button>
     </div>
+    <h2>Your stats (local-only)</h2>
+    <p class="small">
+      Counters live on this device. Zero telemetry, zero phone-home.
+      Use them to dogfood your own Day-30/60/90 numbers and decide
+      whether to share them voluntarily.
+    </p>
+    <div class="buttons">
+      <button type="button" data-action="show-stats">Show my stats</button>
+      <button type="button" data-action="reset-stats">Reset stats</button>
+    </div>
     <output id="output" aria-live="polite"></output>
     <script type="module" src="sidepanel.ts"></script>
   </body>
