@@ -1,12 +1,14 @@
 // grip-post side panel — delegates to the shared dispatch in unicode-toolkit
-// for transforms, and to draft-history for the local persistence buttons.
+// for transforms, draft-history for local persistence, licence for Pro
+// gating, and polar for the checkout URL.
 // Two attribute namespaces:
 //   - data-transform="<TransformKey>"   → input → dispatch(key, text) → output
-//   - data-action="save-draft|view-history|clear-history"
-//                                       → side-effect against chrome.storage.local
+//   - data-action="save-draft|view-history|clear-history|
+//                  buy-pro|save-licence|check-licence|clear-licence"
+//                                       → side-effect against storage / window
 //
-// Adding a new transform = a new HTML button with `data-transform`, then add
-// the key to VALID_KEYS below. Adding a new action = case in handleAction.
+// Adding a new transform = HTML button + add key to VALID_KEYS.
+// Adding a new action = HTML button + case in handleAction.
 
 import { dispatch, type TransformKey } from "./lib/unicode-toolkit";
 import {
@@ -16,9 +18,19 @@ import {
   defaultStorage,
   type DraftEntry,
 } from "./lib/draft-history";
+import {
+  saveLicence,
+  getLicence,
+  clearLicence,
+  hasProLicence,
+} from "./lib/licence";
+import { buildCheckoutUrl } from "./lib/polar";
 
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
+const licenceInput = document.getElementById(
+  "licence-input",
+) as HTMLInputElement | null;
 
 // Hoist storage to module scope so save/view/clear share the same backend.
 // In a real Chrome extension this returns `chrome.storage.local` (shared
@@ -44,6 +56,10 @@ const VALID_ACTIONS = new Set([
   "save-draft",
   "view-history",
   "clear-history",
+  "buy-pro",
+  "save-licence",
+  "check-licence",
+  "clear-licence",
 ]);
 
 function setOutput(text: string): void {
@@ -84,6 +100,51 @@ async function handleAction(action: string): Promise<void> {
     case "clear-history": {
       await clearDrafts(storage);
       setOutput("Cleared all drafts.");
+      return;
+    }
+    case "buy-pro": {
+      const url = buildCheckoutUrl({ source: "sidepanel" });
+      // chrome.tabs is only available in the extension context. In dev/test
+      // (file:// or local server), fall back to window.open so the button
+      // still works for E2E verification.
+      const g = globalThis as unknown as {
+        chrome?: { tabs?: { create?: (opts: { url: string }) => void } };
+      };
+      if (g.chrome?.tabs?.create) {
+        g.chrome.tabs.create({ url });
+      } else {
+        window.open(url, "_blank", "noopener,noreferrer");
+      }
+      setOutput(`Opening Polar checkout: ${url}`);
+      return;
+    }
+    case "save-licence": {
+      const raw = licenceInput?.value ?? "";
+      try {
+        const saved = await saveLicence(raw, storage);
+        if (licenceInput) licenceInput.value = "";
+        setOutput(`Licence saved: ${saved.slice(0, 24)}... Pro features unlocked.`);
+      } catch (err) {
+        setOutput(`Licence save failed: ${(err as Error).message}`);
+      }
+      return;
+    }
+    case "check-licence": {
+      const isPro = await hasProLicence(storage);
+      if (isPro) {
+        const key = await getLicence(storage);
+        const preview = key ? `${key.slice(0, 24)}...` : "(unknown)";
+        setOutput(`Pro tier ACTIVE. Licence: ${preview}`);
+      } else {
+        setOutput(
+          "Pro tier NOT active. Buy at polar.sh/architext1/grip-post-pro then paste your licence key above.",
+        );
+      }
+      return;
+    }
+    case "clear-licence": {
+      await clearLicence(storage);
+      setOutput("Licence removed. Pro features locked.");
       return;
     }
   }

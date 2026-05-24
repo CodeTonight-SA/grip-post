@@ -34,6 +34,25 @@
       <button type="button" data-action="view-history">View history</button>
       <button type="button" data-action="clear-history">Clear history</button>
     </div>
+    <h2>Pro tier</h2>
+    <p class="small">
+      $9 one-time or $4/mo unlocks the AI closer rewriter,
+      R0 grounding semantic check, and reason-out-loud.
+      Purchase opens in a new tab; paste the licence key here to activate.
+    </p>
+    <input
+      id="licence-input"
+      type="text"
+      placeholder="grip-post-pro-XXXXXXXX..."
+      autocomplete="off"
+      spellcheck="false"
+    />
+    <div class="buttons">
+      <button type="button" data-action="buy-pro">Buy Pro ($9)</button>
+      <button type="button" data-action="save-licence">Save licence</button>
+      <button type="button" data-action="check-licence">Check status</button>
+      <button type="button" data-action="clear-licence">Remove licence</button>
+    </div>
     <output id="output" aria-live="polite"></output>
     <script type="module" src="sidepanel.ts"></script>
   </body>

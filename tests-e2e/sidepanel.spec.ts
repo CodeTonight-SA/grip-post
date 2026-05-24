@@ -153,6 +153,48 @@ test.describe("draft history actions", () => {
   });
 });
 
+test.describe("Pro tier — licence + Polar checkout", () => {
+  const VALID_KEY =
+    "grip-post-pro-ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+
+  test("check-licence on fresh state reports NOT active", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await page.locator('button[data-action="clear-licence"]').click();
+    await page.locator('button[data-action="check-licence"]').click();
+    await expect(page.locator("#output")).toContainText("NOT active");
+  });
+
+  test("save-licence with valid shape activates Pro", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await page.locator('button[data-action="clear-licence"]').click();
+    await page.locator("#licence-input").fill(VALID_KEY);
+    await page.locator('button[data-action="save-licence"]').click();
+    await expect(page.locator("#output")).toContainText("Licence saved");
+    await page.locator('button[data-action="check-licence"]').click();
+    await expect(page.locator("#output")).toContainText("Pro tier ACTIVE");
+  });
+
+  test("save-licence with malformed input shows failure message", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await page.locator('button[data-action="clear-licence"]').click();
+    await page.locator("#licence-input").fill("not-a-valid-key");
+    await page.locator('button[data-action="save-licence"]').click();
+    await expect(page.locator("#output")).toContainText(
+      "Licence save failed",
+    );
+  });
+
+  test("clear-licence removes an active licence", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await page.locator("#licence-input").fill(VALID_KEY);
+    await page.locator('button[data-action="save-licence"]').click();
+    await page.locator('button[data-action="clear-licence"]').click();
+    await expect(page.locator("#output")).toContainText("Licence removed");
+  });
+});
+
 test.describe("adversarial — no-op detector", () => {
   test("every transform button produces output that differs from input", async ({
     page,
