@@ -1,6 +1,6 @@
 {
   "name": "grip-post",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Unicode formatter + anti-fluff gate for LinkedIn posts. Refuses to write fluff.",
   "engines": {
     "node": ">=20"
