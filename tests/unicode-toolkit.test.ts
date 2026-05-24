@@ -94,12 +94,20 @@ describe("dispatch — single source of truth for sidepanel + content script", (
     expect(dispatch("handles", "a , b ,c")).toBe("a · b · c"));
   it("routes 'diamond' to diamondTerminate", () =>
     expect(dispatch("diamond", "done")).toBe("done ◆"));
+  it("routes 'check' to formatReport(reportFluff(...))", () => {
+    const out = dispatch("check", "Our revolutionary product");
+    expect(out).toContain("Verdict: DENY");
+    expect(out).toContain("revolutionary");
+  });
+  it("routes 'check' on clean text → 'Verdict: CLEAN'", () => {
+    expect(dispatch("check", "plain text only")).toContain("Verdict: CLEAN");
+  });
   it("routing is not a no-op for any key (adversarial)", () => {
     // Multi-handle input so that 'handles' splits + joins (single-item
     // handles correctly passes through unchanged by spec, which would
     // false-positive this no-op detector).
     const input = "a,b";
-    const keys = ["bold", "italic", "brackets", "hr", "arrow", "handles", "diamond"] as const;
+    const keys = ["bold", "italic", "brackets", "hr", "arrow", "handles", "diamond", "check"] as const;
     for (const k of keys) {
       expect(dispatch(k, input)).not.toBe(input);
     }

@@ -79,7 +79,13 @@ export function diamondTerminate(s: string): string {
   return `${s} ◆`;
 }
 
-/** Stable key set for the 7 v0.1 transforms (shared by side panel + content script). */
+import { reportFluff, formatReport } from "./anti-fluff";
+
+/**
+ * Stable key set for v0.1 features. Seven Unicode transforms +
+ * the anti-fluff `check` (W4) — all return string so the side
+ * panel and content script share a single dispatch surface.
+ */
 export type TransformKey =
   | "bold"
   | "italic"
@@ -87,7 +93,8 @@ export type TransformKey =
   | "hr"
   | "arrow"
   | "handles"
-  | "diamond";
+  | "diamond"
+  | "check";
 
 /**
  * Apply a transform by key. Single dispatch table so the side panel and the
@@ -117,5 +124,7 @@ export function dispatch(key: TransformKey, raw: string): string {
       return joinHandles(raw.split(",").map((s) => s.trim()).filter(Boolean));
     case "diamond":
       return diamondTerminate(raw);
+    case "check":
+      return formatReport(reportFluff(raw));
   }
 }

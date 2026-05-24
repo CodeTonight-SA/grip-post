@@ -15,6 +15,7 @@ const VALID_KEYS: ReadonlySet<TransformKey> = new Set<TransformKey>([
   "arrow",
   "handles",
   "diamond",
+  "check",
 ]);
 
 document.addEventListener("click", (event) => {
