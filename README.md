@@ -1,5 +1,7 @@
 # grip-post
 
+*A LinkedIn tool that refuses to write fluff.*
+
 ## What it is
 
 A Chrome extension that helps you write better LinkedIn posts: Unicode formatting + a gate that refuses to write fluff.

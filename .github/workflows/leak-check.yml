@@ -16,7 +16,17 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Install gitleaks CLI
+        # Direct binary install — gitleaks/gitleaks-action@v2 requires a paid
+        # GITLEAKS_LICENSE secret for organisation accounts. The gitleaks
+        # CLI itself is free. Pinned to a specific version for reproducibility.
+        run: |
+          set -euo pipefail
+          GITLEAKS_VERSION=8.18.4
+          curl -sSL -o /tmp/gitleaks.tar.gz \
+            "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz"
+          tar -xzf /tmp/gitleaks.tar.gz -C /tmp gitleaks
+          sudo install -m 0755 /tmp/gitleaks /usr/local/bin/gitleaks
+          gitleaks version
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gitleaks detect --no-banner --redact --verbose --exit-code 1
