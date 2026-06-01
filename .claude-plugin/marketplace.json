@@ -1,5 +1,6 @@
 {
   "name": "grip-post",
+  "description": "Unicode formatter + anti-fluff gate for LinkedIn posts, in your terminal. One src/lib core, two surfaces (Chrome extension + CLI).",
   "owner": {
     "name": "Laurie Scheepers",
     "url": "https://github.com/CodeTonight-SA"
