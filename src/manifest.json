@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "grip-post",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Unicode formatter + anti-fluff gate for LinkedIn posts. Refuses to write fluff.",
   "permissions": ["contextMenus", "storage", "sidePanel"],
   "host_permissions": ["https://www.linkedin.com/*"],
