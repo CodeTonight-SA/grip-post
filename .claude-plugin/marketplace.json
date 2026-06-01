@@ -1,0 +1,17 @@
+{
+  "name": "grip-post",
+  "owner": {
+    "name": "Laurie Scheepers",
+    "url": "https://github.com/CodeTonight-SA"
+  },
+  "plugins": [
+    {
+      "name": "grip-post",
+      "source": "./",
+      "description": "Unicode formatter + anti-fluff gate for LinkedIn posts, in your terminal. Refuses to write fluff. Shares the pure src/lib core with the grip-post Chrome extension.",
+      "version": "0.1.0",
+      "license": "MIT",
+      "homepage": "https://github.com/CodeTonight-SA/grip-post"
+    }
+  ]
+}
