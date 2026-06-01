@@ -1,0 +1,13 @@
+{
+  "name": "grip-post",
+  "version": "0.1.0",
+  "description": "Unicode formatter + anti-fluff gate for LinkedIn posts — in your terminal. Refuses to write fluff. Shares the pure src/lib core with the grip-post Chrome extension: one core, two surfaces.",
+  "author": {
+    "name": "Laurie Scheepers",
+    "url": "https://github.com/CodeTonight-SA/grip-post"
+  },
+  "homepage": "https://github.com/CodeTonight-SA/grip-post",
+  "repository": "https://github.com/CodeTonight-SA/grip-post",
+  "license": "MIT",
+  "keywords": ["linkedin", "writing", "anti-fluff", "unicode", "formatter"]
+}
