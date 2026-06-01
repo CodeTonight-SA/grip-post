@@ -10,7 +10,7 @@ extension, see the [README](../README.md).
 
 ## What you get
 
-A `/grip-post` command (and a plain CLI) that:
+A `/grip-post:grip-post` skill (and a plain CLI) that:
 
 - **Formats** text with real Unicode that survives a LinkedIn paste — bold,
   italic, rules, bullets, brackets, diamonds.
@@ -27,7 +27,7 @@ Everything runs locally. No network calls, no telemetry, no account.
 ## Requirements
 
 - [Claude Code](https://claude.com/claude-code)
-- Node.js ≥ 20 — the command runs the TypeScript core via `npx tsx`; `tsx` is
+- Node.js ≥ 20 — the skill runs the TypeScript core via `npx tsx`; `tsx` is
   fetched automatically on first run and cached by `npx`.
 
 ## Install
@@ -39,8 +39,7 @@ Inside Claude Code:
 /plugin install grip-post@grip-post
 ```
 
-`grip-post@grip-post` is `plugin-name@marketplace-name` — both happen to be
-`grip-post`. If `/grip-post` does not appear immediately, restart Claude Code.
+Restart Claude Code (or run `/reload-plugins`) so the skill loads.
 
 ### Alternative: clone + CLI (no plugin system)
 
@@ -50,26 +49,29 @@ cd grip-post
 npx tsx bin/grip-post.ts check --file your-draft.txt
 ```
 
-## Commands
+## Invocation
+
+Plugin skills are **namespaced** `/<plugin>:<skill>`. Both the plugin and the
+skill are named `grip-post`, so the command is:
 
 ```
-/grip-post <command> [text]
+/grip-post:grip-post <command> [text]
 ```
 
 | Command | What it does | Example |
 |---|---|---|
-| `check` | Anti-fluff verdict + report | `/grip-post check We are thrilled to announce…` |
-| `strip-tells` | Remove rocket/lightbulb openers, "Thoughts?" closers, excess em-dashes | `/grip-post strip-tells <draft>` |
-| `ground-check` | Flag unsourced "studies show" / bare-percentage claims | `/grip-post ground-check <draft>` |
-| `bold` | 𝗕𝗼𝗹𝗱 (survives LinkedIn paste) | `/grip-post bold Hiring three engineers` |
-| `italic` | 𝘐𝘵𝘢𝘭𝘪𝘤 | `/grip-post italic a quiet aside` |
-| `brackets` | ⌜ corner brackets ⌟ | `/grip-post brackets Reading list` |
-| `hr` | ━━━ heavy rule (default width 30) | `/grip-post hr 15` |
-| `arrow` | ▸  ─→  bullet | `/grip-post arrow Ship the thing` |
-| `handles` | A · B · C middle-dot list (comma-separated input) | `/grip-post handles a.com, b.com` |
-| `diamond` | append ◆ terminator | `/grip-post diamond Fin` |
+| `check` | Anti-fluff verdict + report | `/grip-post:grip-post check We are thrilled to announce…` |
+| `strip-tells` | Remove rocket/lightbulb openers, "Thoughts?" closers, excess em-dashes | `/grip-post:grip-post strip-tells <draft>` |
+| `ground-check` | Flag unsourced "studies show" / bare-percentage claims | `/grip-post:grip-post ground-check <draft>` |
+| `bold` | 𝗕𝗼𝗹𝗱 (survives LinkedIn paste) | `/grip-post:grip-post bold Hiring three engineers` |
+| `italic` | 𝘐𝘵𝘢𝘭𝘪𝘤 | `/grip-post:grip-post italic a quiet aside` |
+| `brackets` | ⌜ corner brackets ⌟ | `/grip-post:grip-post brackets Reading list` |
+| `hr` | ━━━ heavy rule (default width 30) | `/grip-post:grip-post hr 15` |
+| `arrow` | ▸  ─→  bullet | `/grip-post:grip-post arrow Ship the thing` |
+| `handles` | A · B · C middle-dot list (comma-separated input) | `/grip-post:grip-post handles a.com, b.com` |
+| `diamond` | append ◆ terminator | `/grip-post:grip-post diamond Fin` |
 
-For a long draft, point at a file instead of pasting:
+For a long draft, point the CLI at a file instead of pasting:
 
 ```
 npx tsx bin/grip-post.ts check --file draft.txt
@@ -93,13 +95,15 @@ request plus a test that proves the new entry triggers.
 ```
             src/lib/   (pure functions — no DOM, no network, no LLM)
            /         \
-  Chrome side panel    bin/grip-post.ts   ← /grip-post runs this
-  (the extension)      (the Claude Code plugin)
+  Chrome side panel    bin/grip-post.ts   ← /grip-post:grip-post runs this
+  (the extension)      (the Claude Code skill)
 ```
 
 `bin/grip-post.ts` is a thin front-end over the same `dispatch()` table the
 extension uses. Add a transform to the extension and it appears here for free —
-there is no second implementation to drift.
+there is no second implementation to drift. The skill is **manual-only**
+(`disable-model-invocation: true`): Claude will not auto-run it; you invoke it
+explicitly.
 
 ## Accessibility note
 

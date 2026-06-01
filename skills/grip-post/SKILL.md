@@ -1,15 +1,16 @@
 ---
-description: Format text with Unicode that survives LinkedIn paste, and run grip-post's anti-fluff gate. The terminal surface of the grip-post extension.
-argument-hint: <check|strip-tells|ground-check|bold|italic|brackets|hr|arrow|handles|diamond> [text]
+description: Format text with Unicode that survives LinkedIn paste, and run grip-post's anti-fluff gate. Refuses to write fluff. The terminal surface of the grip-post extension.
+disable-model-invocation: true
 allowed-tools: Bash(npx tsx:*)
 ---
 
-`/grip-post` runs grip-post's transforms + gates over your text using the
-**same `src/lib` core the Chrome side panel uses** — no second implementation,
-no drift.
+`/grip-post:grip-post` runs grip-post's transforms + gates over your text using
+the **same `src/lib` core the Chrome side panel uses** — no second
+implementation, no drift.
 
-Run, passing the user's argument straight through. `${CLAUDE_PLUGIN_ROOT}`
-resolves to the plugin's cached repo root, so the script is always found:
+Invoke as `/grip-post:grip-post <command> [text]`. Run, passing the user's
+arguments straight through. `${CLAUDE_PLUGIN_ROOT}` resolves to the plugin's
+cached repo root, so the script is always found:
 
 ```bash
 npx tsx ${CLAUDE_PLUGIN_ROOT}/bin/grip-post.ts $ARGUMENTS

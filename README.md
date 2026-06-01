@@ -56,13 +56,13 @@ core, two surfaces, identical behaviour.
 
 Requires Node ≥ 20 — the command runs the core via `npx tsx` (fetched on first use).
 
-**Use**:
+**Use** — plugin skills are namespaced `/<plugin>:<skill>`, so the command is `/grip-post:grip-post`:
 
 ```
-/grip-post check        We are thrilled to announce…   -> DENY: "thrilled to announce"
-/grip-post bold         Hiring three engineers          -> 𝗛𝗶𝗿𝗶𝗻𝗴 𝘁𝗵𝗿𝗲𝗲 𝗲𝗻𝗴𝗶𝗻𝗲𝗲𝗿𝘀
-/grip-post italic       a quiet aside                   -> 𝘢 𝘲𝘶𝘪𝘦𝘵 𝘢𝘴𝘪𝘥𝘦
-/grip-post strip-tells  <your draft>                    -> removes AI tells
+/grip-post:grip-post check        We are thrilled to announce…  -> DENY: "thrilled to announce"
+/grip-post:grip-post bold         Hiring three engineers         -> 𝗛𝗶𝗿𝗶𝗻𝗴 𝘁𝗵𝗿𝗲𝗲 𝗲𝗻𝗴𝗶𝗻𝗲𝗲𝗿𝘀
+/grip-post:grip-post italic       a quiet aside                  -> 𝘢 𝘲𝘶𝘪𝘦𝘵 𝘢𝘴𝘪𝘥𝘦
+/grip-post:grip-post strip-tells  <your draft>                   -> removes AI tells
 ```
 
 No plugin system? Run the CLI directly:
