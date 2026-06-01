@@ -41,6 +41,36 @@ $4/mo subscription unlocks the AI closer rewriter + R0 grounding semantic check 
 
 Buy: [polar.sh/architext1/grip-post-pro](https://polar.sh/architext1/grip-post-pro)
 
+## Claude Code plugin (terminal)
+
+grip-post is also a [Claude Code](https://claude.com/claude-code) plugin. The
+same `src/lib` core that powers the Chrome side panel runs in your terminal — one
+core, two surfaces, identical behaviour.
+
+**Install** (inside Claude Code):
+
+```
+/plugin marketplace add CodeTonight-SA/grip-post
+/plugin install grip-post@grip-post
+```
+
+Requires Node ≥ 20 — the command runs the core via `npx tsx` (fetched on first use).
+
+**Use**:
+
+```
+/grip-post check        We are thrilled to announce…   -> DENY: "thrilled to announce"
+/grip-post bold         Hiring three engineers          -> 𝗛𝗶𝗿𝗶𝗻𝗴 𝘁𝗵𝗿𝗲𝗲 𝗲𝗻𝗴𝗶𝗻𝗲𝗲𝗿𝘀
+/grip-post italic       a quiet aside                   -> 𝘢 𝘲𝘶𝘪𝘦𝘵 𝘢𝘴𝘪𝘥𝘦
+/grip-post strip-tells  <your draft>                    -> removes AI tells
+```
+
+No plugin system? Run the CLI directly:
+`npx tsx bin/grip-post.ts check --file draft.txt`.
+
+Full command reference + verdict semantics:
+[docs/CLAUDE_CODE_PLUGIN.md](docs/CLAUDE_CODE_PLUGIN.md).
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) and the open issues for the current roadmap.
