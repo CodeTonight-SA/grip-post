@@ -32,6 +32,7 @@ import {
   formatStats,
   type StatEvent,
 } from "./lib/telemetry";
+import { gatherReceipt, formatReceipt } from "./lib/receipt";
 
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
@@ -45,6 +46,10 @@ const licenceInput = document.getElementById(
 // an in-memory Map. Without hoisting, each call would build a FRESH Map
 // and drafts would silently never round-trip — caught by E2E save→view test.
 const storage = defaultStorage();
+
+// The last receipt rendered, so "Copy receipt" can re-emit it. Module-scope
+// for the same reason `storage` is hoisted — shared across click handlers.
+let lastReceipt = "";
 
 const VALID_KEYS: ReadonlySet<TransformKey> = new Set<TransformKey>([
   "bold",
@@ -69,6 +74,8 @@ const VALID_ACTIONS = new Set([
   "clear-licence",
   "show-stats",
   "reset-stats",
+  "receipt",
+  "copy-receipt",
 ]);
 
 function setOutput(text: string): void {
@@ -85,6 +92,19 @@ function formatDrafts(drafts: readonly DraftEntry[]): string {
     lines.push(`[${ts}] ${preview}`);
   }
   return lines.join("\n");
+}
+
+/** Today as YYYY-MM-DD — the impure clock the pure receipt builder needs. */
+function today(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Extension version from the manifest; dev fallback keeps the receipt sane. */
+function extensionVersion(): string {
+  const g = globalThis as unknown as {
+    chrome?: { runtime?: { getManifest?: () => { version?: string } } };
+  };
+  return g.chrome?.runtime?.getManifest?.().version ?? "0.1.1";
 }
 
 async function handleAction(action: string): Promise<void> {
@@ -164,6 +184,38 @@ async function handleAction(action: string): Promise<void> {
     case "reset-stats": {
       await resetStats(storage);
       setOutput("Stats reset. Counters back to zero.");
+      return;
+    }
+    case "receipt": {
+      const data = gatherReceipt({
+        text,
+        cleanChecks: 0,
+        date: today(),
+        version: extensionVersion(),
+      });
+      // Honest running tally: a clean post advances the same local-only
+      // `fluff.clean` counter that "Show my stats" reads. Zero network.
+      if (data.clean) await bump("fluff.clean", 1, storage);
+      const stats = await getStats(storage);
+      const cleanChecks = stats.counts["fluff.clean"] ?? 0;
+      lastReceipt = formatReceipt({ ...data, cleanChecks });
+      setOutput(lastReceipt);
+      return;
+    }
+    case "copy-receipt": {
+      if (!lastReceipt) {
+        setOutput("Make a receipt first, then copy it.");
+        return;
+      }
+      try {
+        // Clipboard write runs inside the click gesture (transient
+        // activation) so it needs NO new manifest permission — the
+        // capability lock stays unwidened. Falls back to manual select.
+        await navigator.clipboard.writeText(lastReceipt);
+        setOutput(`${lastReceipt}\n\n— copied to clipboard —`);
+      } catch {
+        setOutput(`${lastReceipt}\n\n(couldn't auto-copy — select the text above)`);
+      }
       return;
     }
   }
