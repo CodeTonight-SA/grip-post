@@ -50,6 +50,8 @@ export type StatEvent =
   | "action.clear-licence"
   | "action.show-stats"
   | "action.reset-stats"
+  | "action.receipt"
+  | "action.copy-receipt"
   | "fluff.deny"
   | "fluff.warn"
   | "fluff.clean";

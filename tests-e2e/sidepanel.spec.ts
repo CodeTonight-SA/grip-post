@@ -224,3 +224,41 @@ test.describe("adversarial — no-op detector", () => {
     }
   });
 });
+
+test.describe("Clean Receipt", () => {
+  test("receipt + copy buttons are present", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await expect(page.locator('button[data-action="receipt"]')).toBeVisible();
+    await expect(
+      page.locator('button[data-action="copy-receipt"]'),
+    ).toBeVisible();
+  });
+
+  test("make receipt on a clean post renders a CLEAN RECEIPT", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "We shipped the patch today. Tests are green.");
+    await page.locator('button[data-action="receipt"]').click();
+    const out = await output(page);
+    expect(out).toContain("grip-post");
+    expect(out).toContain("CLEAN RECEIPT");
+    expect(out).toContain("nothing left your device");
+  });
+
+  test("make receipt on fluff renders NEEDS WORK", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(
+      page,
+      "Thrilled to announce our revolutionary, game-changing solution.",
+    );
+    await page.locator('button[data-action="receipt"]').click();
+    expect(await output(page)).toContain("NEEDS WORK");
+  });
+
+  test("copy before make prompts to make a receipt first", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await page.locator('button[data-action="copy-receipt"]').click();
+    await expect(page.locator("#output")).toContainText("Make a receipt first");
+  });
+});
