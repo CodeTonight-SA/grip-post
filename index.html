@@ -3,11 +3,328 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>grip-post dev preview</title>
-    <link rel="stylesheet" href="/src/styles.css" />
+    <title>grip-post — a LinkedIn writing tool that refuses to write fluff</title>
+    <meta
+      name="description"
+      content="grip-post is a Chrome extension and Claude Code plugin that formats LinkedIn posts with real Unicode and refuses to write fluff. Free, on-device, zero telemetry. Pro adds an AI closer rewriter (ships v0.3)."
+    />
+    <meta name="color-scheme" content="light dark" />
+    <meta property="og:title" content="grip-post — refuses to write fluff" />
+    <meta
+      property="og:description"
+      content="Unicode formatting that survives LinkedIn paste + an anti-fluff gate that flags 25 cringe phrases. Free and on-device."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content="og_image.png" />
+    <link rel="stylesheet" href="site.css" />
   </head>
   <body>
-    <h1>grip-post</h1>
-    <p>Dev preview. Load as unpacked extension in Chrome for real behaviour.</p>
+    <a
+      class="btn btn-ghost"
+      href="#main"
+      style="position: absolute; left: -9999px; top: 0"
+      onfocus="this.style.left='1rem'; this.style.top='1rem'; this.style.zIndex='99'"
+      onblur="this.style.left='-9999px'"
+      >Skip to content</a
+    >
+
+    <!-- ================= top bar ================= -->
+    <header class="wrap topbar">
+      <div class="brand">grip<span class="dot">·</span>post</div>
+      <nav class="topnav" aria-label="Primary">
+        <a href="#how">How it works</a>
+        <a href="#surfaces">Two surfaces</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#honesty">Privacy</a>
+        <a href="https://github.com/CodeTonight-SA/grip-post">GitHub</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <!-- ================= hero ================= -->
+      <section class="wrap hero" aria-labelledby="h1">
+        <div class="hero-grid">
+          <div>
+            <p class="kicker">Chrome extension · Claude Code plugin</p>
+            <h1 id="h1">
+              A LinkedIn tool that <span class="refuse">refuses</span> to write fluff.
+            </h1>
+            <p class="lede">
+              Real Unicode formatting that survives LinkedIn&rsquo;s paste, plus a
+              gate that flags 25 hard-coded cringe phrases before you publish.
+              Free, on your own device, zero telemetry.
+            </p>
+            <div class="cta-row">
+              <a
+                class="btn btn-primary"
+                href="https://github.com/CodeTonight-SA/grip-post#install"
+                >Get the dev build</a
+              >
+              <a class="btn btn-ghost" href="#how">See how it works</a>
+            </div>
+            <p class="note">
+              <b>Chrome Web Store:</b> coming W11 (June&nbsp;2026). Until then,
+              load the unpacked dev build or use the Claude&nbsp;Code plugin.
+            </p>
+          </div>
+
+          <!-- live demo: the product demonstrating itself, in static markup -->
+          <div class="demo" aria-label="Example of the anti-fluff gate and formatting">
+            <div class="demo-bar">
+              <span class="lamp on"></span><span class="lamp"></span
+              ><span class="lamp"></span>
+              <span class="title">grip-post · side panel</span>
+            </div>
+            <div class="demo-body">
+              <div class="io">
+                <span class="lbl">You typed</span>
+                <span class="val struck"
+                  >We are thrilled to announce a revolutionary, game-changing
+                  platform.</span
+                >
+              </div>
+              <div class="io">
+                <span class="lbl">Gate verdict</span>
+                <span class="val"
+                  ><span class="tag deny">DENY</span>
+                  &nbsp;&ldquo;thrilled to announce&rdquo;, &ldquo;revolutionary&rdquo;,
+                  &ldquo;game-changing&rdquo;</span
+                >
+              </div>
+              <div class="io">
+                <span class="lbl">You rewrote, then bold</span>
+                <span class="val bigtype">𝗠𝗮𝗱𝗲 𝗼𝗻𝗲 𝗿𝗲𝗮𝗹 𝗮𝗻𝗻𝗼𝘂𝗻𝗰𝗲𝗺𝗲𝗻𝘁</span>
+              </div>
+              <div class="io">
+                <span class="lbl">Final post</span>
+                <span class="val"
+                  ><span class="tag clean">CLEAN</span> &nbsp;ready to paste &#x25C6;</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= why ================= -->
+      <section class="wrap" aria-labelledby="why-h" id="why">
+        <div class="sec-head">
+          <p class="kicker">Why it exists</p>
+          <h2 id="why-h">Most AI writing tools produce the same hollow post.</h2>
+          <p>
+            LinkedIn&rsquo;s native editor strips the formatting that makes a post
+            scannable, and every &ldquo;write me a post&rdquo; tool reaches for the
+            same tired phrases. grip-post does the opposite of both: it gives you
+            the formatting LinkedIn won&rsquo;t, and it stands between you and the
+            words that make readers stop trusting you. The refusal is the product.
+          </p>
+        </div>
+      </section>
+
+      <!-- ================= three filters ================= -->
+      <section class="wrap" aria-labelledby="how-h" id="how">
+        <div class="sec-head">
+          <p class="kicker">How it works</p>
+          <h2 id="how-h">Three filters, all running on your machine.</h2>
+          <p>
+            Nothing is sent anywhere. The free tier runs every check locally with
+            no network calls and no telemetry.
+          </p>
+        </div>
+        <div class="filters">
+          <article class="filter">
+            <span class="n">01 / FORMAT</span>
+            <h3>Unicode that survives paste</h3>
+            <p>
+              Seven transforms map plain text to real Unicode characters, so the
+              styling holds when you paste into LinkedIn: bold, italic, corner
+              brackets <code>&#x231C; X &#x231F;</code>, a heavy rule
+              <code>&#x2501;&#x2501;&#x2501;</code>, an arrow bullet
+              <code>&#x25B8; &#x2500;&#x2192;</code>, middle-dot handle lists
+              <code>A &#xB7; B</code>, and a diamond terminator <code>&#x25C6;</code>.
+            </p>
+          </article>
+          <article class="filter">
+            <span class="n">02 / REFUSE</span>
+            <h3>Anti-fluff gate</h3>
+            <p>
+              Flags 25 hard-coded LinkedIn-cringe phrases &mdash;
+              &ldquo;revolutionary&rdquo;, &ldquo;thrilled to announce&rdquo;,
+              &ldquo;paradigm shift&rdquo;, &ldquo;synergy&rdquo; &mdash; plus
+              em-dash and emoji density warnings. The list lives in source: changing
+              it needs a pull request and a passing test. <code>strip-tells</code>
+              goes further and removes rocket-emoji openers and
+              &ldquo;Thoughts?&rdquo; closers, showing you exactly what it cut.
+            </p>
+          </article>
+          <article class="filter">
+            <span class="n">03 / GROUND</span>
+            <h3>Unsourced-claim check</h3>
+            <p>
+              A regex pass flags claims that need a source &mdash;
+              &ldquo;studies show&rdquo; with no citation, a bare percentage,
+              &ldquo;everyone knows&rdquo; &mdash; so you can add a link or soften
+              the wording before a critic does it for you in the comments.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= terminal example ================= -->
+      <section class="wrap" aria-labelledby="cli-h">
+        <div class="sec-head">
+          <p class="kicker">Real commands</p>
+          <h2 id="cli-h">It works in your terminal too.</h2>
+          <p>
+            The Claude&nbsp;Code plugin and the Chrome side panel share one core
+            library, so every transform works in both. These commands actually run.
+          </p>
+        </div>
+        <pre class="term"><span class="pr">$</span> <span class="cm">/grip-post:grip-post check</span>  <span class="ot">We are thrilled to announce</span>
+<span class="dn">DENY</span><span class="ot">: "thrilled to announce" (banned phrase)</span>
+
+<span class="pr">$</span> <span class="cm">/grip-post:grip-post bold</span>   <span class="ot">Hiring three engineers</span>
+<span class="ot">𝗛𝗶𝗿𝗶𝗻𝗴 𝘁𝗵𝗿𝗲𝗲 𝗲𝗻𝗴𝗶𝗻𝗲𝗲𝗿𝘀</span>   <span class="ot">(survives LinkedIn paste)</span>
+
+<span class="pr">$</span> <span class="cm">/grip-post:grip-post italic</span> <span class="ot">a quiet aside</span>
+<span class="ot">𝘢 𝘲𝘶𝘪𝘦𝘵 𝘢𝘴𝘪𝘥𝘦</span>
+
+<span class="pr">$</span> <span class="cm">npx tsx bin/grip-post.ts strip-tells</span> <span class="ot">--file draft.txt</span>
+<span class="ot">Stripped 2 tell(s): leading rocket emoji, trailing "Thoughts?"</span></pre>
+        <p class="note">
+          No plugin system? Run the CLI directly:
+          <code class="mono">npx tsx bin/grip-post.ts check --file draft.txt</code>.
+          Requires Node&nbsp;&ge;&nbsp;20.
+        </p>
+      </section>
+
+      <!-- ================= two surfaces ================= -->
+      <section class="wrap" aria-labelledby="surf-h" id="surfaces">
+        <div class="sec-head">
+          <p class="kicker">One core, two front-ends</p>
+          <h2 id="surf-h">Browser side panel or terminal &mdash; same behaviour.</h2>
+          <p>
+            The Chrome extension and the Claude&nbsp;Code plugin are two thin
+            surfaces over the exact same pure core library. Add a transform once
+            and it appears in both, with no second copy to drift out of sync.
+          </p>
+        </div>
+        <div class="surfaces">
+          <article class="surface">
+            <span class="badge">Chrome extension</span>
+            <h3>The side panel</h3>
+            <ul>
+              <li>Opens beside LinkedIn&rsquo;s compose box</li>
+              <li>Seven one-click formatting transforms</li>
+              <li>Anti-fluff verdict and strip-tells in place</li>
+              <li>Local draft history, up to 20, on your device only</li>
+            </ul>
+          </article>
+          <article class="surface">
+            <span class="badge">Claude Code plugin</span>
+            <h3>The terminal</h3>
+            <ul>
+              <li><code class="mono">/grip-post:grip-post &lt;command&gt;</code></li>
+              <li>Same checks, same Unicode output</li>
+              <li>Reads a draft inline, from a file, or from stdin</li>
+              <li>No build step &mdash; runs via <code class="mono">npx tsx</code></li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= pricing ================= -->
+      <section class="wrap" aria-labelledby="price-h" id="pricing">
+        <div class="sec-head">
+          <p class="kicker">Pricing</p>
+          <h2 id="price-h">Free does the work. Pro does the rewrite.</h2>
+        </div>
+        <div class="tiers">
+          <article class="tier">
+            <h3>Free</h3>
+            <p class="price">&dollar;0</p>
+            <ul>
+              <li>Seven Unicode transforms</li>
+              <li>Anti-fluff gate &mdash; 25 banned phrases</li>
+              <li>Strip-tells: removes AI openers and closers</li>
+              <li>Unsourced-claim check</li>
+              <li>Local draft history and stats</li>
+              <li>Zero telemetry, zero network calls</li>
+            </ul>
+          </article>
+          <article class="tier pro">
+            <h3>Pro</h3>
+            <p class="price">&dollar;4 <small>/ month</small></p>
+            <p class="soon">Early access &mdash; rewriter ships in v0.3</p>
+            <ul>
+              <li>Everything in Free</li>
+              <li>AI closer rewriter, routed through HAL</li>
+              <li>An anti-fluff floor runs <em>before</em> the model call, so banned phrases never reach it</li>
+              <li>Reason-out-loud mode</li>
+            </ul>
+            <a
+              class="btn btn-primary"
+              href="https://polar.sh/architext1/grip-post-pro"
+              >Lock the early price</a
+            >
+            <p class="note">
+              The rewriter itself is not live yet. Subscribing now locks the
+              early price and funds the build &mdash; you are paying for the
+              roadmap, stated plainly.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <!-- ================= honesty / privacy ================= -->
+      <section class="wrap" aria-labelledby="honest-h" id="honesty">
+        <div class="sec-head">
+          <p class="kicker">The honest part</p>
+          <h2 id="honest-h">What it does and doesn&rsquo;t do.</h2>
+        </div>
+        <div class="honesty">
+          <div class="fact">
+            <h4>On your device only</h4>
+            <p>
+              Drafts, stats and licence keys live in
+              <code class="mono">chrome.storage.local</code> &mdash; never synced,
+              never uploaded.
+            </p>
+          </div>
+          <div class="fact">
+            <h4>LinkedIn only</h4>
+            <p>
+              The extension can reach
+              <code class="mono">https://www.linkedin.com/*</code> and nowhere
+              else. Chrome blocks any other network call regardless of code.
+            </p>
+          </div>
+          <div class="fact">
+            <h4>No magic words</h4>
+            <p>
+              The gate is plain regex over a list you can read in the source. No
+              model decides what counts as fluff &mdash; a reviewed list does.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================= footer ================= -->
+    <footer class="wrap">
+      <div class="foot-grid">
+        <div class="foot-links">
+          <a href="https://github.com/CodeTonight-SA/grip-post">Repository</a>
+          <a href="https://github.com/CodeTonight-SA/grip-post/blob/main/docs/CLAUDE_CODE_PLUGIN.md">Plugin docs</a>
+          <a href="https://github.com/CodeTonight-SA/grip-post/blob/main/docs/PRIVACY.md">Privacy</a>
+          <a href="https://github.com/CodeTonight-SA/grip-post/blob/main/ROADMAP.md">Roadmap</a>
+          <a href="https://polar.sh/architext1/grip-post-pro">Pro</a>
+        </div>
+        <p class="foot-note">
+          grip-post &middot; version 0.1.1 &middot; built by CodeTonight.
+          A tool that refuses to write fluff &mdash; so its own page won&rsquo;t either.
+        </p>
+      </div>
+    </footer>
   </body>
 </html>
