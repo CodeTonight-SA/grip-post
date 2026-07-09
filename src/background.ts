@@ -43,7 +43,10 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.action.onClicked.addListener((tab) => {
-  if (tab.id !== undefined) {
-    chrome.sidePanel.open({ tabId: tab.id });
-  }
+  if (tab.id === undefined) return;
+  // Chrome opens the native side panel here. Safari (and any browser without
+  // the side-panel API) uses the toolbar action's default_popup instead, so
+  // this listener never fires there — but guard the call so a missing
+  // chrome.sidePanel is a safe no-op rather than a thrown ReferenceError.
+  chrome.sidePanel?.open({ tabId: tab.id });
 });

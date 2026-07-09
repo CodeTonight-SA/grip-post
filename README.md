@@ -35,6 +35,33 @@ npm run package
 
 Runs `build` → `verify-build` (capability-lock assertion on the artefact's permissions + host_permissions + content-script matches) → zips `dist/`. Fails loud if the build widened the permission surface.
 
+## Safari
+
+grip-post runs in Safari too — same transforms, same anti-fluff gate, same core.
+
+**Test-drive now (zero install, any browser):**
+
+```
+npm install
+npm run dev:web
+```
+
+Open the printed `localhost` URL in Safari. The side-panel UI runs as a normal
+web page (drafts + stats are in-memory only in this mode).
+
+**Full Safari extension** (toolbar popup, context menus, persistent storage) —
+Safari Web Extensions must be built into an app bundle by **full Xcode** (there
+is no "load unpacked"):
+
+```
+sudo xcode-select -s /Applications/Xcode.app/Contents/Developer   # one-time
+npm run package:safari
+```
+
+This builds the Safari target and runs `safari-web-extension-converter` to
+generate an Xcode project — open it, Build (Cmd-B), then enable grip-post in
+**Safari -> Settings -> Extensions**. Full details: [`docs/SAFARI.md`](docs/SAFARI.md).
+
 ## Pro tier (early access)
 
 $4/mo subscription unlocks the AI closer rewriter + R0 grounding semantic check + reason-out-loud. The rewriter itself ships in v0.3 — routes through HAL (Harness Abstraction Layer, CodeTonight's proprietary inference router) with an anti-fluff floor BEFORE the LLM call so banned phrases never reach the model. Subscribing now locks the early-bird price and funds the build.
