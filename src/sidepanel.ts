@@ -264,6 +264,16 @@ function runTransform(key: TransformKey): void {
       : "";
 
   const edit = applyToRange(doc.text, range, (slice) => dispatch(key, slice));
+
+  // A transform that changed nothing must not become an undo step. Styles are
+  // idempotent by design — bolding already-bold text passes it through — so
+  // without this the user presses Undo, watches nothing happen, and reasonably
+  // concludes undo is broken. Show the notice, skip the history entry.
+  if (edit.text === doc.text) {
+    renderMetrics(doc.text, notice);
+    return;
+  }
+
   commit({ text: edit.text, selection: edit.selection }, notice);
 }
 

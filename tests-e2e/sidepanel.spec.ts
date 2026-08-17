@@ -461,3 +461,28 @@ test.describe("collapsed-selection notice", () => {
     );
   });
 });
+
+test.describe("no-op transforms", () => {
+  // Raised by the in-session council round 2 (sealed cc4497168281aa0f).
+  // Styles are idempotent, so bolding already-bold text changes nothing. If
+  // that still pushed an undo step, the user would press Undo, see nothing
+  // happen, and conclude undo was broken.
+  test("re-applying a style does not create a dead undo step", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "hello");
+    await select(page, 0, 5);
+    await page.locator('button[data-transform="bold"]').click();
+    const bolded = await doc(page);
+
+    // Bold it again — idempotent, so the text cannot change.
+    await select(page, 0, bolded.length);
+    await page.locator('button[data-transform="bold"]').click();
+    expect(await doc(page)).toBe(bolded);
+
+    // ONE undo must reach the original, not land on a no-op step first.
+    await page.locator('button[data-action="undo"]').click();
+    expect(await doc(page)).toBe("hello");
+  });
+});
