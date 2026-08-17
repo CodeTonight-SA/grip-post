@@ -262,3 +262,227 @@ test.describe("Clean Receipt", () => {
     await expect(page.locator("#output")).toContainText("Make a receipt first");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Selection-scoped editing — the regression anchor for the reported bug.
+//
+// Before the fix, src/sidepanel.ts read input.value wholesale and ignored
+// selectionStart/selectionEnd, so selecting one word and clicking Bold bolded
+// the entire draft. The first test below FAILS against that implementation:
+// it asserts the unselected sentences come back byte-identical. If anyone
+// reverts to reading the whole value, this goes red.
+// ---------------------------------------------------------------------------
+
+/** Set a real selection on the textarea and let the app observe it. */
+async function select(
+  page: import("@playwright/test").Page,
+  start: number,
+  end: number,
+) {
+  await page.locator("#input").evaluate(
+    (el, r) => {
+      const t = el as HTMLTextAreaElement;
+      t.focus();
+      t.setSelectionRange(r.start, r.end);
+      t.dispatchEvent(new Event("select", { bubbles: true }));
+    },
+    { start, end },
+  );
+}
+
+async function doc(page: import("@playwright/test").Page): Promise<string> {
+  return page.locator("#input").inputValue();
+}
+
+test.describe("selection-scoped transforms", () => {
+  const A = "First sentence stays.";
+  const B = "Middle one changes.";
+  const C = "Last sentence stays.";
+  const POST = `${A}\n${B}\n${C}`;
+
+  test("bold applies to the selection and leaves the rest byte-identical", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, POST);
+    await select(page, POST.indexOf(B), POST.indexOf(B) + B.length);
+    await page.locator('button[data-transform="bold"]').click();
+
+    const after = await doc(page);
+    // The untouched sentences survive exactly — this is the whole complaint.
+    expect(after.startsWith(`${A}\n`)).toBe(true);
+    expect(after.endsWith(`\n${C}`)).toBe(true);
+    // The selected sentence is now bold, so its plain form is gone.
+    expect(after).not.toContain(B);
+    expect(after).toContain("\u{1D5E0}"); // math sans-serif bold m
+  });
+
+  test("a collapsed selection still transforms the whole document", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "abc");
+    await select(page, 1, 1);
+    await page.locator('button[data-transform="bold"]').click();
+    expect(await doc(page)).toBe("\u{1D5EE}\u{1D5EF}\u{1D5F0}");
+  });
+
+  test("two transforms compose on different spans", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "alpha beta");
+    await select(page, 0, 5);
+    await page.locator('button[data-transform="bold"]').click();
+    const afterBold = await doc(page);
+    // Re-select "beta" by its position in the NEW text — bold is astral, so
+    // the offsets moved, which is exactly why applyToRange returns a range.
+    const betaAt = afterBold.indexOf("beta");
+    await select(page, betaAt, betaAt + 4);
+    await page.locator('button[data-transform="italic"]').click();
+
+    const final = await doc(page);
+    expect(final).toContain("\u{1D5EE}"); // bold a, from "alpha"
+    expect(final).toContain("\u{1D622}"); // italic a, from "beta"
+    expect(final).not.toContain("alpha");
+    expect(final).not.toContain("beta");
+  });
+
+  test("a report transform never edits the document", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    const draft = "Our revolutionary product is here.";
+    await setInput(page, draft);
+    await page.locator('button[data-transform="check"]').click();
+    // The safety property: a report answers in the output panel and the
+    // user's post is untouched.
+    expect(await doc(page)).toBe(draft);
+    expect(await output(page)).toContain("Verdict: DENY");
+  });
+});
+
+test.describe("undo and redo", () => {
+  test("undo restores the exact previous text", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "hello");
+    await select(page, 0, 5);
+    await page.locator('button[data-transform="bold"]').click();
+    expect(await doc(page)).not.toBe("hello");
+    await page.locator('button[data-action="undo"]').click();
+    expect(await doc(page)).toBe("hello");
+  });
+
+  test("two transforms then two undos returns the original", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "one two");
+    await select(page, 0, 3);
+    await page.locator('button[data-transform="bold"]').click();
+    const mid = await doc(page);
+    await select(page, mid.length - 3, mid.length);
+    await page.locator('button[data-transform="italic"]').click();
+    await page.locator('button[data-action="undo"]').click();
+    await page.locator('button[data-action="undo"]').click();
+    expect(await doc(page)).toBe("one two");
+  });
+
+  test("redo re-applies what undo took away", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "redo me");
+    await select(page, 0, 4);
+    await page.locator('button[data-transform="bold"]').click();
+    const bolded = await doc(page);
+    await page.locator('button[data-action="undo"]').click();
+    await page.locator('button[data-action="redo"]').click();
+    expect(await doc(page)).toBe(bolded);
+  });
+
+  test("clear is undoable", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "do not lose this");
+    await page.locator('button[data-action="clear-input"]').click();
+    expect(await doc(page)).toBe("");
+    await page.locator('button[data-action="undo"]').click();
+    expect(await doc(page)).toBe("do not lose this");
+  });
+});
+
+test.describe("line transforms and metrics", () => {
+  test("bullets expand a mid-line selection to whole lines", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    const list = "first\nsecond\nthird";
+    await setInput(page, list);
+    // A range starting mid-word in line 2 and ending mid-word in line 3.
+    await select(page, 8, 15);
+    await page.locator('button[data-transform="bullet-dot"]').click();
+    const after = await doc(page);
+    // Lines 2 and 3 are bulleted whole; line 1 is untouched.
+    expect(after).toBe("first\n• second\n• third");
+  });
+
+  test("metrics count graphemes, not UTF-16 units", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "abc");
+    await select(page, 0, 3);
+    await page.locator('button[data-transform="bold"]').click();
+    // Three bold letters are 3 graphemes but 6 UTF-16 units. The metrics
+    // line must say 3, or every styled post reads as twice its true length.
+    await expect(page.locator("#metrics")).toContainText("3 chars");
+    await expect(page.locator("#metrics")).toContainText("3 styled");
+  });
+});
+
+test.describe("collapsed-selection notice", () => {
+  // Raised by the in-session council (sealed 0f47e0a5bd12886d): treating a bare
+  // caret as the whole document surprises a user who put their caret down to
+  // type and hit a button by mistake. The rule stays - it is right for the
+  // common paste-and-click case - but the tool now says what it did.
+  test("a whole-post transform from a bare caret is announced", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "some post text");
+    await select(page, 4, 4); // bare caret, nothing selected
+    await page.locator('button[data-transform="bold"]').click();
+    await expect(page.locator("#metrics")).toContainText(
+      "Nothing was selected",
+    );
+    await expect(page.locator("#metrics")).toContainText("Undo");
+  });
+
+  test("a real selection is NOT announced", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "some post text");
+    await select(page, 0, 4);
+    await page.locator('button[data-transform="bold"]').click();
+    // A notice on every click would be noise the user learns to ignore.
+    await expect(page.locator("#metrics")).not.toContainText(
+      "Nothing was selected",
+    );
+  });
+});
+
+test.describe("no-op transforms", () => {
+  // Raised by the in-session council round 2 (sealed cc4497168281aa0f).
+  // Styles are idempotent, so bolding already-bold text changes nothing. If
+  // that still pushed an undo step, the user would press Undo, see nothing
+  // happen, and conclude undo was broken.
+  test("re-applying a style does not create a dead undo step", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "hello");
+    await select(page, 0, 5);
+    await page.locator('button[data-transform="bold"]').click();
+    const bolded = await doc(page);
+
+    // Bold it again — idempotent, so the text cannot change.
+    await select(page, 0, bolded.length);
+    await page.locator('button[data-transform="bold"]').click();
+    expect(await doc(page)).toBe(bolded);
+
+    // ONE undo must reach the original, not land on a no-op step first.
+    await page.locator('button[data-action="undo"]').click();
+    expect(await doc(page)).toBe("hello");
+  });
+});

@@ -1,5 +1,36 @@
-/* grip-post side panel styles */
-/* W3 will add formatting controls */
+/* grip-post side panel styles.
+ *
+ * Sized for a Chrome side panel, which is about 320px wide and as tall as the
+ * browser. Vertical space is the scarce resource: there are 48 transform
+ * buttons, and one full-width row each would be a scroll nobody would use. So
+ * the transforms sit in a wrapping grid of small buttons and only the primary
+ * actions keep full width.
+ *
+ * Colours come from custom properties with a dark override, because the side
+ * panel inherits the browser's theme and a white panel inside a dark browser
+ * is jarring. */
+
+:root {
+  --bg: #fff;
+  --fg: #111;
+  --muted: #555;
+  --line: #333;
+  --faint: #ccc;
+  --hover: #f0f0f0;
+  --accent: #0a5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181a;
+    --fg: #e8e8e8;
+    --muted: #a0a0a0;
+    --line: #55595e;
+    --faint: #33373b;
+    --hover: #24272a;
+    --accent: #4ade80;
+  }
+}
 
 * {
   box-sizing: border-box;
@@ -11,8 +42,8 @@ body {
   font-family: monospace;
   font-size: 14px;
   padding: 16px;
-  color: #111;
-  background: #fff;
+  color: var(--fg);
+  background: var(--bg);
 }
 
 h1 {
@@ -21,33 +52,136 @@ h1 {
   margin-bottom: 12px;
 }
 
+h2 {
+  font-size: 14px;
+  font-weight: bold;
+  margin: 20px 0 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--faint);
+}
+
+/* Group headings inside the toolbar are quieter than a section heading —
+ * they label a row of buttons, they do not open a new part of the page. */
+h3 {
+  font-size: 11px;
+  font-weight: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 12px 0 6px;
+}
+
 p {
   margin-bottom: 12px;
-  color: #444;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.small {
+  font-size: 12px;
+}
+
+.legend {
+  margin-top: 14px;
+  padding: 8px;
+  border-left: 2px solid var(--faint);
+}
+
+textarea,
+input[type="text"] {
+  width: 100%;
+  font-family: monospace;
+  font-size: 14px;
+  padding: 8px;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  resize: vertical;
+}
+
+/* The live measurement under the input. Wraps the honest warning on its own
+ * line, so pre-line rather than nowrap. */
+#metrics {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: pre-line;
+  margin: 6px 0 10px;
+  min-height: 14px;
 }
 
 button {
+  font-family: monospace;
+  font-size: 13px;
+  padding: 8px 10px;
+  min-height: 32px;
+  cursor: pointer;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--line);
+}
+
+button:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+/* Undo and redo are disabled when they would do nothing. Saying so is more
+ * honest than a button that silently no-ops. */
+button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* Full-width stack — the original layout, kept for primary actions where
+ * there are only a few and each deserves the room. */
+.buttons button {
   display: block;
   width: 100%;
-  padding: 8px 12px;
   margin-bottom: 8px;
-  font-family: monospace;
-  font-size: 14px;
-  cursor: pointer;
-  border: 1px solid #333;
-  background: #fff;
-  color: #111;
 }
 
-button:hover {
-  background: #f0f0f0;
+/* The dense layout: as many buttons per row as fit, each readable. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 6px;
 }
 
+.grid-actions {
+  margin-bottom: 12px;
+}
+
+.toolbar {
+  margin-bottom: 4px;
+}
+
+/* Transform buttons carry a Unicode sample of the style they produce, so they
+ * must not clip it. Ellipsis rather than overflow keeps the grid aligned. */
+.grid button.t {
+  padding: 6px 6px;
+  font-size: 12px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* The output mirrors the document, so it can be as long as a whole post.
+ * Capped and scrollable rather than growing without bound, which would push
+ * every control off-screen. */
 #output {
+  display: block;
   margin-top: 16px;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid var(--faint);
   min-height: 40px;
+  max-height: 40vh;
+  overflow-y: auto;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   font-family: monospace;
 }

@@ -9,22 +9,97 @@
   <body>
     <h1>grip-post</h1>
     <p>
-      Paste a draft or selection. Pick a transform.
-      The result lands in the output box below — copy and paste into LinkedIn.
+      Paste your draft below. Select the words you want to change, then pick a
+      format — only the selection changes, and the rest of the post is left
+      exactly as it was. Select nothing and the whole post is formatted.
+      Everything composes, so you can bold one phrase and bullet a list beneath
+      it. Copy the finished post into LinkedIn.
     </p>
-    <textarea id="input" rows="6" placeholder="Your text here..."></textarea>
+    <textarea id="input" rows="8" placeholder="Your text here..."></textarea>
+    <div id="metrics" aria-live="polite"></div>
     <div class="buttons">
-      <button type="button" data-transform="bold">𝗕𝗼𝗹𝗱</button>
-      <button type="button" data-transform="italic">𝘐𝘵𝘢𝘭𝘪𝘤</button>
-      <button type="button" data-transform="brackets">⌜ Brackets ⌟</button>
-      <button type="button" data-transform="hr">━━━ Horizontal (width)</button>
-      <button type="button" data-transform="arrow">▸  ─→  Arrow bullet</button>
-      <button type="button" data-transform="handles">A.com · B.com (Handles)</button>
-      <button type="button" data-transform="diamond">Diamond ◆</button>
-      <button type="button" data-transform="check">Check for fluff</button>
-      <button type="button" data-transform="strip-tells">Strip AI tells</button>
-      <button type="button" data-transform="ground-check">R0 grounding check</button>
+      <button type="button" data-action="copy-output">Copy post</button>
     </div>
+    <div class="grid grid-actions">
+      <button type="button" data-action="undo">Undo</button>
+      <button type="button" data-action="redo">Redo</button>
+      <button type="button" data-action="clear-input">Clear</button>
+    </div>
+    <section class="toolbar">
+      <h3>Style</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="bold" title="Bold" aria-label="Bold">𝗔𝗮 Bold</button>
+        <button type="button" class="t" data-transform="italic" title="Italic" aria-label="Italic">𝘈𝘢 Italic</button>
+        <button type="button" class="t" data-transform="bold-italic" title="Bold italic" aria-label="Bold italic">𝘼𝙖 Bold italic</button>
+        <button type="button" class="t" data-transform="mono" title="Monospace" aria-label="Monospace">𝙰𝚊 Monospace</button>
+        <button type="button" class="t" data-transform="script" title="Script" aria-label="Script">𝒜𝒶 Script</button>
+        <button type="button" class="t" data-transform="fraktur" title="Fraktur" aria-label="Fraktur">𝔄𝔞 Fraktur</button>
+        <button type="button" class="t" data-transform="double-struck" title="Double-struck" aria-label="Double-struck">𝔸𝕒 Double-struck</button>
+        <button type="button" class="t" data-transform="wide" title="Wide" aria-label="Wide">Ａａ Wide</button>
+        <button type="button" class="t" data-transform="underline" title="Underline" aria-label="Underline">A̲a̲ Underline</button>
+        <button type="button" class="t" data-transform="strike" title="Strikethrough" aria-label="Strikethrough">A̶a̶ Strikethrough</button>
+        <button type="button" class="t" data-transform="super" title="Superscript" aria-label="Superscript">ᴬᵃ Superscript</button>
+        <button type="button" class="t" data-transform="sub" title="Subscript" aria-label="Subscript">Aₐ Subscript</button>
+        <button type="button" class="t" data-transform="plain" title="Plain — Undo every style and return the text to ordinary letters." aria-label="Plain">Plain</button>
+      </div>
+      <h3>Wrap</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="brackets" title="Brackets" aria-label="Brackets">Brackets</button>
+        <button type="button" class="t" data-transform="diamond" title="Diamond" aria-label="Diamond">Diamond</button>
+        <button type="button" class="t" data-transform="arrow" title="Arrow — Prefix the text with a bullet arrow." aria-label="Arrow">Arrow</button>
+        <button type="button" class="t" data-transform="handles" title="Handles — Comma-separated names, joined with a middle dot." aria-label="Handles">Handles</button>
+      </div>
+      <h3>Lists</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="bullet-dot" title="Dot" aria-label="Dot">Dot</button>
+        <button type="button" class="t" data-transform="bullet-arrow" title="Arrow" aria-label="Arrow">Arrow</button>
+        <button type="button" class="t" data-transform="bullet-triangle" title="Triangle" aria-label="Triangle">Triangle</button>
+        <button type="button" class="t" data-transform="bullet-square" title="Square" aria-label="Square">Square</button>
+        <button type="button" class="t" data-transform="bullet-check" title="Check" aria-label="Check">Check</button>
+        <button type="button" class="t" data-transform="bullet-star" title="Star" aria-label="Star">Star</button>
+        <button type="button" class="t" data-transform="bullet-dash" title="Dash" aria-label="Dash">Dash</button>
+        <button type="button" class="t" data-transform="bullet-sparkle" title="Sparkle" aria-label="Sparkle">Sparkle</button>
+        <button type="button" class="t" data-transform="number-plain" title="Plain" aria-label="Plain">Plain</button>
+        <button type="button" class="t" data-transform="number-circled" title="Circled" aria-label="Circled">Circled</button>
+        <button type="button" class="t" data-transform="number-filled" title="Filled" aria-label="Filled">Filled</button>
+        <button type="button" class="t" data-transform="number-paren" title="Parenthesised" aria-label="Parenthesised">Parenthesised</button>
+      </div>
+      <h3>Blocks</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="quote" title="Quote" aria-label="Quote">Quote</button>
+        <button type="button" class="t" data-transform="indent" title="Indent" aria-label="Indent">Indent</button>
+        <button type="button" class="t" data-transform="strip-prefix" title="Strip prefix — Remove one bullet, numeral, quote rule or indent per line." aria-label="Strip prefix">Strip prefix</button>
+      </div>
+      <h3>Art</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="hr" title="Rule — Heavy rule. Type a width first; blank means 30." aria-label="Rule">Rule</button>
+        <button type="button" class="t" data-transform="divider-heavy" title="Heavy" aria-label="Heavy">Heavy</button>
+        <button type="button" class="t" data-transform="divider-double" title="Double" aria-label="Double">Double</button>
+        <button type="button" class="t" data-transform="divider-dotted" title="Dotted" aria-label="Dotted">Dotted</button>
+        <button type="button" class="t" data-transform="divider-dashed" title="Dashed" aria-label="Dashed">Dashed</button>
+        <button type="button" class="t" data-transform="divider-wave" title="Wave" aria-label="Wave">Wave</button>
+        <button type="button" class="t" data-transform="divider-stars" title="Stars" aria-label="Stars">Stars</button>
+        <button type="button" class="t" data-transform="divider-fade" title="Fade" aria-label="Fade">Fade</button>
+        <button type="button" class="t" data-transform="progress" title="Progress — Type a percentage first; blank means 0." aria-label="Progress">Progress</button>
+        <button type="button" class="t" data-transform="sparkline" title="Sparkline — Type numbers separated by commas or spaces." aria-label="Sparkline">Sparkline</button>
+        <button type="button" class="t" data-transform="stars" title="Rating — Type a score out of five; blank means 0." aria-label="Rating">Rating</button>
+        <button type="button" class="t" data-transform="callout" title="Callout — Draw a monospace box around the text." aria-label="Callout">Callout</button>
+      </div>
+      <h3>Checks</h3>
+      <div class="grid">
+        <button type="button" class="t" data-transform="check" title="Check fluff — Reads your post and reports back. Never edits it." aria-label="Check fluff">Check fluff</button>
+        <button type="button" class="t" data-transform="strip-tells" title="Strip AI tells — Shows the cleaned text and what it removed. Never edits your post." aria-label="Strip AI tells">Strip AI tells</button>
+        <button type="button" class="t" data-transform="ground-check" title="Ground check — Flags claims with nothing behind them. Never edits your post." aria-label="Ground check">Ground check</button>
+        <button type="button" class="t" data-transform="metrics" title="Metrics — Characters, styled characters, the limit and the fold." aria-label="Metrics">Metrics</button>
+      </div>
+    </section>
+    <p class="small legend">
+      These are Unicode characters, not real formatting — LinkedIn has no bold
+      button, so a "bold" letter is a different character that happens to look
+      bold. It pastes as plain text anywhere. The trade-off is real: screen
+      readers cannot read styled letters, LinkedIn's search will not match them,
+      and a few older fonts show empty boxes instead. Style a phrase, not a post.
+    </p>
     <h2>Clean Receipt</h2>
     <p class="small">
       A shareable, on-device integrity receipt for your post — clichés, AI
