@@ -431,3 +431,33 @@ test.describe("line transforms and metrics", () => {
     await expect(page.locator("#metrics")).toContainText("3 styled");
   });
 });
+
+test.describe("collapsed-selection notice", () => {
+  // Raised by the in-session council (sealed 0f47e0a5bd12886d): treating a bare
+  // caret as the whole document surprises a user who put their caret down to
+  // type and hit a button by mistake. The rule stays - it is right for the
+  // common paste-and-click case - but the tool now says what it did.
+  test("a whole-post transform from a bare caret is announced", async ({
+    page,
+  }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "some post text");
+    await select(page, 4, 4); // bare caret, nothing selected
+    await page.locator('button[data-transform="bold"]').click();
+    await expect(page.locator("#metrics")).toContainText(
+      "Nothing was selected",
+    );
+    await expect(page.locator("#metrics")).toContainText("Undo");
+  });
+
+  test("a real selection is NOT announced", async ({ page }) => {
+    await page.goto(SIDEPANEL_URL);
+    await setInput(page, "some post text");
+    await select(page, 0, 4);
+    await page.locator('button[data-transform="bold"]').click();
+    // A notice on every click would be noise the user learns to ignore.
+    await expect(page.locator("#metrics")).not.toContainText(
+      "Nothing was selected",
+    );
+  });
+});

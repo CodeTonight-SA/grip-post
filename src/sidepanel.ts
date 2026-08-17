@@ -151,8 +151,15 @@ function readDoc(): HistoryState {
   };
 }
 
-/** Live post measurements + the honest warning, under the input. */
-function renderMetrics(text: string): void {
+/**
+ * Live post measurements, the honest warning, and any notice about what the
+ * last click just did.
+ *
+ * The notice goes here rather than in the output box because the output box
+ * mirrors the document — anything written there is overwritten by the next
+ * render. This is the advisory surface, so advisories belong here.
+ */
+function renderMetrics(text: string, notice = ""): void {
   if (!metrics) return;
   const m = measurePost(text);
   const parts = [
@@ -163,11 +170,14 @@ function renderMetrics(text: string): void {
   if (m.beyondFold) parts.push("past the fold");
   if (m.overLimit) parts.push("OVER THE LIMIT");
   const warning = accessibilityWarning(text);
-  metrics.textContent = parts.join(" · ") + (warning ? `\n${warning}` : "");
+  const lines = [parts.join(" · ")];
+  if (notice) lines.push(notice);
+  if (warning) lines.push(warning);
+  metrics.textContent = lines.join("\n");
 }
 
 /** Reflect a document state into the DOM: textarea, preview, metrics, buttons. */
-function render(state: HistoryState, focus: boolean): void {
+function render(state: HistoryState, focus: boolean, notice = ""): void {
   if (input) {
     input.value = state.text;
     if (focus) {
@@ -176,7 +186,7 @@ function render(state: HistoryState, focus: boolean): void {
     }
   }
   setOutput(state.text);
-  renderMetrics(state.text);
+  renderMetrics(state.text, notice);
   syncUndoButtons();
 }
 
@@ -193,7 +203,7 @@ function syncUndoButtons(): void {
 }
 
 /** Record the current document, then apply and show the next one. */
-function commit(next: HistoryState): void {
+function commit(next: HistoryState, notice = ""): void {
   // Typing is snapshotted on a pause (see the input listener). A user who
   // types and then immediately clicks a button acts inside that pause, so
   // what they just typed was never recorded — and undo would hand them back
@@ -208,7 +218,7 @@ function commit(next: HistoryState): void {
   // A pending snapshot would now duplicate this state; drop it.
   cancelTypingSnapshot();
   history = pushHistory(history, next);
-  render(next, true);
+  render(next, true, notice);
 }
 
 /**
@@ -240,8 +250,21 @@ function runTransform(key: TransformKey): void {
         ? expandToLines(doc.text, doc.selection)
         : doc.selection;
 
+  // A bare caret means the whole document (see selection.normaliseRange).
+  // That is right for the common "paste a draft, click Bold" case, but it is
+  // a surprise for someone who put their caret down to type and hit a button
+  // by mistake — they get their whole post reformatted with no warning. The
+  // rule stays, because changing it would break the common case; what changes
+  // is that the tool now SAYS what it did and how to take it back. An
+  // announced action is not a surprise.
+  const collapsed = doc.selection.start === doc.selection.end;
+  const notice =
+    collapsed && cls !== "whole"
+      ? "Nothing was selected, so the whole post was formatted. Undo with Cmd/Ctrl+Z."
+      : "";
+
   const edit = applyToRange(doc.text, range, (slice) => dispatch(key, slice));
-  commit({ text: edit.text, selection: edit.selection });
+  commit({ text: edit.text, selection: edit.selection }, notice);
 }
 
 /** Format a draft list for the output panel — newest first, ISO timestamps. */
