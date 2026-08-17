@@ -96,6 +96,24 @@ let history: History = initHistory({
   selection: { start: 0, end: 0 },
 });
 
+/**
+ * How long a typist must pause before their text becomes an undo step.
+ * Granularity only: a word or a phrase per step rather than a character.
+ * Correctness does not depend on it — `commit` captures unsnapshotted text
+ * before every edit.
+ */
+const TYPING_SNAPSHOT_MS = 400;
+
+let typingTimer: ReturnType<typeof setTimeout> | undefined;
+
+/** Drop a pending typing snapshot. */
+function cancelTypingSnapshot(): void {
+  if (typingTimer !== undefined) {
+    clearTimeout(typingTimer);
+    typingTimer = undefined;
+  }
+}
+
 /** Derived from the transform table, so a key cannot exist in one and not the other. */
 const VALID_KEYS: ReadonlySet<string> = new Set(TRANSFORMS.map((t) => t.key));
 
@@ -176,6 +194,19 @@ function syncUndoButtons(): void {
 
 /** Record the current document, then apply and show the next one. */
 function commit(next: HistoryState): void {
+  // Typing is snapshotted on a pause (see the input listener). A user who
+  // types and then immediately clicks a button acts inside that pause, so
+  // what they just typed was never recorded — and undo would hand them back
+  // a stale draft instead of the one they were looking at. Capture the live
+  // document here, before the edit lands, whenever it has drifted from the
+  // last snapshot. That makes history correct regardless of the debounce,
+  // which is then only about undo GRANULARITY, never about correctness.
+  const current = readDoc();
+  if (current.text !== history.present.text) {
+    history = pushHistory(history, current);
+  }
+  // A pending snapshot would now duplicate this state; drop it.
+  cancelTypingSnapshot();
   history = pushHistory(history, next);
   render(next, true);
 }
@@ -439,16 +470,21 @@ document.addEventListener("keydown", (event) => {
 // Typing is the other way the document changes. Debounced so a fast typist is
 // not re-measuring on every keystroke; the snapshot is taken on a pause, which
 // also gives undo sensible granularity — a word or a phrase, not a character.
-let typingTimer: ReturnType<typeof setTimeout> | undefined;
 input?.addEventListener("input", () => {
   const text = input.value;
   setOutput(text);
   renderMetrics(text);
-  if (typingTimer !== undefined) clearTimeout(typingTimer);
+  cancelTypingSnapshot();
   typingTimer = setTimeout(() => {
-    history = pushHistory(history, readDoc());
-    syncUndoButtons();
-  }, 400);
+    const now = readDoc();
+    // Guard against snapshotting a state we already hold — a pause after a
+    // transform would otherwise insert a no-op step the user has to undo
+    // twice to get past.
+    if (now.text !== history.present.text) {
+      history = pushHistory(history, now);
+      syncUndoButtons();
+    }
+  }, TYPING_SNAPSHOT_MS);
 });
 
 // Seed from whatever the textarea already holds, without stealing focus.
