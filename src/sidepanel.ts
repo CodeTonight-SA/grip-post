@@ -1,16 +1,49 @@
-// grip-post side panel — delegates to the shared dispatch in unicode-toolkit
-// for transforms, draft-history for local persistence, licence for Pro
-// gating, and polar for the checkout URL.
-// Two attribute namespaces:
-//   - data-transform="<TransformKey>"   → input → dispatch(key, text) → output
-//   - data-action="save-draft|view-history|clear-history|
-//                  buy-pro|save-licence|check-licence|clear-licence"
-//                                       → side-effect against storage / window
+// grip-post side panel — the editor shell around the pure toolkit.
 //
-// Adding a new transform = HTML button + add key to VALID_KEYS.
-// Adding a new action = HTML button + case in handleAction.
+// THE MODEL: the textarea IS the working document.
+//
+// A transform applies to whatever the user has SELECTED and splices the result
+// back into the textarea; the output box mirrors the textarea as a live
+// preview. Two consequences follow, and both are the point:
+//
+//   1. Only the selected words change. Everything else is left byte-identical,
+//      which is what a formatting toolbar has to do to be usable at all.
+//   2. Transforms COMPOSE. Bold one phrase, italicise another, bullet a list —
+//      each edit lands on the document the previous one produced.
+//
+// A collapsed selection (a bare caret) means the whole document. That rule
+// lives in selection.normaliseRange, not here, so every path inherits one
+// definition of it. It keeps "paste a post, click Bold" working for the user
+// who never selects anything.
+//
+// Three attribute namespaces:
+//   data-transform="<TransformKey>"  → edit the document, or render a report
+//   data-action="<name>"             → a side effect against storage / window
+//
+// Adding a transform is one row in the TRANSFORMS table in lib/unicode-toolkit
+// plus a button; this file derives its key set from that table so the two
+// cannot drift apart.
 
-import { dispatch, type TransformKey } from "./lib/unicode-toolkit";
+import {
+  dispatch,
+  transformClass,
+  TRANSFORMS,
+  type TransformKey,
+} from "./lib/unicode-toolkit";
+import {
+  applyToRange,
+  expandToLines,
+  initHistory,
+  pushHistory,
+  undo as undoHistory,
+  redo as redoHistory,
+  canUndo,
+  canRedo,
+  type History,
+  type HistoryState,
+  type Range,
+} from "./lib/selection";
+import { measurePost, accessibilityWarning } from "./lib/linkedin";
 import {
   saveDraft,
   getDrafts,
@@ -36,6 +69,7 @@ import { gatherReceipt, formatReceipt } from "./lib/receipt";
 
 const input = document.getElementById("input") as HTMLTextAreaElement | null;
 const output = document.getElementById("output") as HTMLElement | null;
+const metrics = document.getElementById("metrics") as HTMLElement | null;
 const licenceInput = document.getElementById(
   "licence-input",
 ) as HTMLInputElement | null;
@@ -51,18 +85,19 @@ const storage = defaultStorage();
 // for the same reason `storage` is hoisted — shared across click handlers.
 let lastReceipt = "";
 
-const VALID_KEYS: ReadonlySet<TransformKey> = new Set<TransformKey>([
-  "bold",
-  "italic",
-  "brackets",
-  "hr",
-  "arrow",
-  "handles",
-  "diamond",
-  "check",
-  "strip-tells",
-  "ground-check",
-]);
+// WHY AN EXPLICIT UNDO STACK, rather than leaning on the browser's:
+// assigning to textarea.value REPLACES the element's content wholesale and
+// discards its native undo history. After one programmatic edit, Cmd+Z gives
+// the user nothing back. Since every transform here is a programmatic edit,
+// an explicit stack is the only way the user can recover their draft — it is
+// a requirement of the design, not a nicety layered on top of it.
+let history: History = initHistory({
+  text: "",
+  selection: { start: 0, end: 0 },
+});
+
+/** Derived from the transform table, so a key cannot exist in one and not the other. */
+const VALID_KEYS: ReadonlySet<string> = new Set(TRANSFORMS.map((t) => t.key));
 
 const VALID_ACTIONS = new Set([
   "save-draft",
@@ -76,10 +111,106 @@ const VALID_ACTIONS = new Set([
   "reset-stats",
   "receipt",
   "copy-receipt",
+  "undo",
+  "redo",
+  "copy-output",
+  "clear-input",
 ]);
 
 function setOutput(text: string): void {
   if (output) output.textContent = text;
+}
+
+/** The document as it stands: its text and where the user is in it. */
+function readDoc(): HistoryState {
+  const text = input?.value ?? "";
+  return {
+    text,
+    selection: {
+      start: input?.selectionStart ?? text.length,
+      end: input?.selectionEnd ?? text.length,
+    },
+  };
+}
+
+/** Live post measurements + the honest warning, under the input. */
+function renderMetrics(text: string): void {
+  if (!metrics) return;
+  const m = measurePost(text);
+  const parts = [
+    `${m.chars} chars`,
+    `${m.lines} line${m.lines === 1 ? "" : "s"}`,
+  ];
+  if (m.styledChars > 0) parts.push(`${m.styledChars} styled`);
+  if (m.beyondFold) parts.push("past the fold");
+  if (m.overLimit) parts.push("OVER THE LIMIT");
+  const warning = accessibilityWarning(text);
+  metrics.textContent = parts.join(" · ") + (warning ? `\n${warning}` : "");
+}
+
+/** Reflect a document state into the DOM: textarea, preview, metrics, buttons. */
+function render(state: HistoryState, focus: boolean): void {
+  if (input) {
+    input.value = state.text;
+    if (focus) {
+      input.focus();
+      input.setSelectionRange(state.selection.start, state.selection.end);
+    }
+  }
+  setOutput(state.text);
+  renderMetrics(state.text);
+  syncUndoButtons();
+}
+
+/** Undo and redo are disabled when they would do nothing — honest affordance. */
+function syncUndoButtons(): void {
+  const set = (action: string, enabled: boolean): void => {
+    const btn = document.querySelector<HTMLButtonElement>(
+      `button[data-action="${action}"]`,
+    );
+    if (btn) btn.disabled = !enabled;
+  };
+  set("undo", canUndo(history));
+  set("redo", canRedo(history));
+}
+
+/** Record the current document, then apply and show the next one. */
+function commit(next: HistoryState): void {
+  history = pushHistory(history, next);
+  render(next, true);
+}
+
+/**
+ * Run one transform against the document.
+ *
+ * The transform's CLASS decides what range it sees, and the class comes from
+ * the shared table rather than a list maintained here — so a `report` key can
+ * never be spliced into the user's post by an oversight in this file.
+ */
+function runTransform(key: TransformKey): void {
+  const doc = readDoc();
+  const cls = transformClass(key);
+
+  // A report reads the whole draft and answers in the output panel. It must
+  // not touch the document, which is the entire reason the class exists.
+  if (cls === "report") {
+    setOutput(dispatch(key, doc.text));
+    return;
+  }
+
+  // `line` transforms (bullets, numbering, quoting) are nonsense applied to
+  // half a line, so grow the range to whole lines first. `whole` transforms
+  // are selection-blind by definition. Everything else — map, wrap, insert —
+  // is the same splice: replace the selected slice with its transform.
+  const range: Range =
+    cls === "whole"
+      ? { start: 0, end: doc.text.length }
+      : cls === "line"
+        ? expandToLines(doc.text, doc.selection)
+        : doc.selection;
+
+  const edit = applyToRange(doc.text, range, (slice) => dispatch(key, slice));
+  commit({ text: edit.text, selection: edit.selection });
 }
 
 /** Format a draft list for the output panel — newest first, ISO timestamps. */
@@ -107,9 +238,51 @@ function extensionVersion(): string {
   return g.chrome?.runtime?.getManifest?.().version ?? "0.1.1";
 }
 
+/** Clipboard write inside a click gesture — needs no extra manifest permission. */
+async function copyToClipboard(text: string, label: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+    setOutput(`${text}\n\n— ${label} copied to clipboard —`);
+  } catch {
+    setOutput(`${text}\n\n(couldn't auto-copy — select the text above)`);
+  }
+}
+
 async function handleAction(action: string): Promise<void> {
   const text = input?.value ?? "";
   switch (action) {
+    case "undo": {
+      if (!canUndo(history)) {
+        setOutput("Nothing to undo.");
+        return;
+      }
+      history = undoHistory(history);
+      render(history.present, true);
+      return;
+    }
+    case "redo": {
+      if (!canRedo(history)) {
+        setOutput("Nothing to redo.");
+        return;
+      }
+      history = redoHistory(history);
+      render(history.present, true);
+      return;
+    }
+    case "clear-input": {
+      // Pushed to history first, so clearing is recoverable like any edit.
+      commit({ text: "", selection: { start: 0, end: 0 } });
+      return;
+    }
+    case "copy-output": {
+      const value = output?.textContent ?? "";
+      if (!value) {
+        setOutput("Nothing to copy yet.");
+        return;
+      }
+      await copyToClipboard(value, "post");
+      return;
+    }
     case "save-draft": {
       try {
         const entry = await saveDraft(text, storage);
@@ -207,28 +380,36 @@ async function handleAction(action: string): Promise<void> {
         setOutput("Make a receipt first, then copy it.");
         return;
       }
-      try {
-        // Clipboard write runs inside the click gesture (transient
-        // activation) so it needs NO new manifest permission — the
-        // capability lock stays unwidened. Falls back to manual select.
-        await navigator.clipboard.writeText(lastReceipt);
-        setOutput(`${lastReceipt}\n\n— copied to clipboard —`);
-      } catch {
-        setOutput(`${lastReceipt}\n\n(couldn't auto-copy — select the text above)`);
-      }
+      await copyToClipboard(lastReceipt, "receipt");
       return;
     }
   }
 }
 
-document.addEventListener("click", (event) => {
-  const target = event.target as HTMLElement | null;
+// KEEPING THE SELECTION ALIVE ACROSS THE CLICK.
+//
+// Event order on a button press is mousedown → (focus moves) → mouseup →
+// click. By the time our click handler runs, focus has already left the
+// textarea. Chrome does preserve selectionStart/End on a blurred textarea, so
+// reading them still works — but the user watches their highlight vanish the
+// instant they reach for a button, which reads as "the tool lost my
+// selection" even when it did not. Cancelling mousedown's default keeps focus
+// (and the visible highlight) in the textarea throughout. It is the standard
+// toolbar technique, and here it buys correctness of appearance rather than
+// of behaviour.
+document.addEventListener("mousedown", (event) => {
+  const target = (event.target as HTMLElement | null)?.closest("button");
   if (!target) return;
-  const transform = target.dataset?.transform;
-  const action = target.dataset?.action;
-  if (transform && VALID_KEYS.has(transform as TransformKey)) {
-    const text = input?.value ?? "";
-    setOutput(dispatch(transform as TransformKey, text));
+  if (target.dataset.transform || target.dataset.action) event.preventDefault();
+});
+
+document.addEventListener("click", (event) => {
+  const target = (event.target as HTMLElement | null)?.closest("button");
+  if (!target) return;
+  const transform = target.dataset.transform;
+  const action = target.dataset.action;
+  if (transform && VALID_KEYS.has(transform)) {
+    runTransform(transform as TransformKey);
     // Local-only counter bump. Pure storage, zero network. See lib/telemetry.ts.
     void bump(`transform.${transform}` as StatEvent, 1, storage);
     return;
@@ -239,3 +420,37 @@ document.addEventListener("click", (event) => {
     return;
   }
 });
+
+// Cmd/Ctrl+Z undoes, Cmd+Shift+Z or Ctrl+Y redoes — the shortcuts a user
+// already has in their fingers. Bound on the document so they work whether or
+// not the caret is in the textarea.
+document.addEventListener("keydown", (event) => {
+  if (!event.metaKey && !event.ctrlKey) return;
+  const key = event.key.toLowerCase();
+  if (key === "z") {
+    event.preventDefault();
+    void handleAction(event.shiftKey ? "redo" : "undo");
+  } else if (key === "y") {
+    event.preventDefault();
+    void handleAction("redo");
+  }
+});
+
+// Typing is the other way the document changes. Debounced so a fast typist is
+// not re-measuring on every keystroke; the snapshot is taken on a pause, which
+// also gives undo sensible granularity — a word or a phrase, not a character.
+let typingTimer: ReturnType<typeof setTimeout> | undefined;
+input?.addEventListener("input", () => {
+  const text = input.value;
+  setOutput(text);
+  renderMetrics(text);
+  if (typingTimer !== undefined) clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
+    history = pushHistory(history, readDoc());
+    syncUndoButtons();
+  }, 400);
+});
+
+// Seed from whatever the textarea already holds, without stealing focus.
+history = initHistory(readDoc());
+render(history.present, false);
