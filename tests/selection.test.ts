@@ -454,3 +454,43 @@ describe("the user's actual complaint", () => {
     expect(r.text).toContain(last);
   });
 });
+
+describe("text-unchanged implies selection-unchanged", () => {
+  // Raised by the in-session council round 3 (sealed b8fd639c9b35d086): a
+  // transform that leaves the TEXT unchanged but MOVES the selection would
+  // have its selection change silently discarded by the early return in
+  // sidepanel.runTransform.
+  //
+  // It cannot happen, and not by luck. applyToRange returns
+  // { start, end: start + replaced.length }. If the text is unchanged then
+  // replaced.length equals the original slice length, so the returned range
+  // is identical to the one passed in. Text-unchanged implies
+  // selection-unchanged BY CONSTRUCTION.
+  //
+  // The council's example needed a "toggle heading" command that collapses the
+  // selection. No such transform exists here, and this test is what keeps that
+  // true: add one that moves the caret without changing the text and this goes
+  // red, which is the signal to revisit the early return.
+  it("a no-op transform returns the range it was given, unchanged", () => {
+    const text = "first line\nsecond line\nthird line";
+    const range = { start: 14, end: 20 };
+    const result = applyToRange(text, range, (s) => s); // identity: no-op
+    expect(result.text).toBe(text);
+    expect(result.selection).toEqual(range);
+  });
+
+  it("holds for every slice of a multi-line post", () => {
+    const text = "alpha\n\nbeta gamma\ndelta";
+    for (let start = 0; start < text.length; start += 1) {
+      for (const width of [1, 3, 7]) {
+        const end = Math.min(start + width, text.length);
+        if (start === end) continue;
+        const range = { start, end };
+        const out = applyToRange(text, range, (s) => s);
+        // Whenever the text comes back identical, so must the range.
+        expect(out.text).toBe(text);
+        expect(out.selection).toEqual(range);
+      }
+    }
+  });
+});
