@@ -10,7 +10,9 @@ npm install
 npm run dev:web
 ```
 
-Open the printed `localhost` URL in Safari. The side-panel UI runs as an
+Open http://127.0.0.1:7678/sidepanel.html in Safari (a busy port stops the
+server with an error; choose another with `npm run dev:web -- --port 7679`).
+The side-panel UI runs as an
 ordinary web page: paste a draft, pick a transform, copy the result into
 LinkedIn. The anti-fluff `check` / `strip-tells` / `ground-check` gates all run.
 
