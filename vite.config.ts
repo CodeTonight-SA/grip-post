@@ -26,6 +26,11 @@ export default defineConfig(() => {
       root: "src",
       publicDir: false,
       base: "./",
+      // One fixed address for `npm run dev:web`: 127.0.0.1, so the server never
+      // binds IPv6 only, and strictPort, so a busy port fails loudly instead of
+      // moving to the next one. 7678 is keypad P-O-S-T, away from framework
+      // defaults such as 5173. Choose another with `npm run dev:web -- --port N`.
+      server: { host: "127.0.0.1", port: 7678, strictPort: true },
       build: {
         outDir: "../dist-web",
         emptyOutDir: true,

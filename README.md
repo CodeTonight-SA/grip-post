@@ -46,8 +46,10 @@ npm install
 npm run dev:web
 ```
 
-Open the printed `localhost` URL in Safari. The side-panel UI runs as a normal
-web page (drafts + stats are in-memory only in this mode).
+Open http://127.0.0.1:7678/sidepanel.html in Safari. The side-panel UI runs as a
+normal web page (drafts + stats are in-memory only in this mode). If another
+program holds port 7678, the server stops with an error instead of moving to
+another port. Choose a different port with `npm run dev:web -- --port 7679`.
 
 **Full Safari extension** (toolbar popup, context menus, persistent storage) —
 Safari Web Extensions must be built into an app bundle by **full Xcode** (there
