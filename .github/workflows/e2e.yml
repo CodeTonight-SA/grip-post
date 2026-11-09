@@ -11,7 +11,10 @@ permissions:
 
 jobs:
   playwright:
-    runs-on: ubuntu-latest
+    # Pinned: on ubuntu-latest (Ubuntu 26.04 from late 2026) Playwright 1.60
+    # refuses to install Chromium ("does not support chromium on ubuntu26.04-x64").
+    # Move to ubuntu-latest again with a Playwright release that supports it.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
