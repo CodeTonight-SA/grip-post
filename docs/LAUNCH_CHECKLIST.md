@@ -10,7 +10,8 @@ V>>'s manual steps for the W11 launch. Each item is autonomous-unsafe
       `architext1` email so the published extension shows the consistent
       pseudonym.
 - [ ] **Polar.sh org + product**.
-  - Org: `architext1` (already exists per `project_donna_v_alias_architext1`).
+  - Org: `architext1` (already exists per the operator's own pseudonym-alias
+    decision record).
   - Create product: `grip-post-pro`, **$4/mo recurring subscription**
     (early access — the rewriter ships v0.3; description makes that
     explicit so buyers know they're funding the build).

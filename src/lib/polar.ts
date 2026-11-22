@@ -13,7 +13,8 @@
 // key to the buyer's email, which the operator pastes back into the
 // extension's "Save licence" field. Zero secrets in the extension.
 //
-// V>>'s Polar org slug: `architext1` (per project_donna_v_alias_architext1).
+// V>>'s Polar org slug: `architext1` (per the operator's own pseudonym-alias
+// decision record).
 // SKU slug: `grip-post-pro` — $4/mo recurring subscription (early access).
 //
 // **v0.0.1 honest scope**: the Polar checkout page is live and accepts
